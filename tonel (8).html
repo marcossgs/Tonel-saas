@@ -1,0 +1,1758 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tonel — Controle de Distribuidora de Chope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#FBFAF5;--card:#FFFFFF;--ink:#1A201C;--muted:#7C786E;--line:#E7E2D6;
+    --gold:#B8761A;--gold-soft:#F3E6CC;--cellar:#26402F;--cellar-2:#32513D;
+    --rust:#A8421C;--rust-soft:#F6DDD2;--blue:#2C4356;--blue-soft:#E2E8EE;
+    --green-ok:#3F6B4E;--green-soft:#E4F0E7;--amber:#C66A1E;
+    --shadow:0 1px 2px rgba(26,32,28,.06),0 8px 24px -16px rgba(26,32,28,.25);--r:14px;}
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+  h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;margin:0;letter-spacing:-.01em}
+  button{font-family:inherit;cursor:pointer}input,select{font-family:inherit;font-size:14px}
+  ::selection{background:var(--gold-soft)}
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+  .side{background:var(--cellar);color:#E9EFE9;padding:22px 16px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:baseline;gap:8px;padding:4px 8px 22px}
+  .brand .logo{width:26px;height:26px;border-radius:7px;background:linear-gradient(160deg,var(--gold),#8A560E);display:inline-block;position:relative;flex:0 0 auto;box-shadow:inset 0 -6px 8px -4px rgba(0,0,0,.4)}
+  .brand .logo::after{content:"";position:absolute;left:5px;right:5px;top:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.7)}
+  .brand b{font-family:"Bricolage Grotesque";font-weight:800;font-size:19px;color:#fff;letter-spacing:-.02em}
+  .brand span{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9DB6A3}
+  .nav{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+  .nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:transparent;border:0;color:#CBD8CD;padding:9px 11px;border-radius:9px;font-size:13.5px;font-weight:500;transition:.15s}
+  .nav button .ic{width:17px;height:17px;flex:0 0 auto;opacity:.85}
+  .nav button:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nav button.active{background:var(--gold);color:#241500;font-weight:600}
+  .nav button.subnav{padding-left:30px;font-size:12.5px;color:#A9BBB0}
+  .nav button.subnav .subdot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex:0 0 auto}
+  .nav button.subnav.active{background:rgba(184,118,26,.22);color:#F0C98A;font-weight:600}
+  .nav button.subnav.active .subdot{opacity:1}
+  #nav-equip-pai.active{background:rgba(255,255,255,.06);color:#fff}
+  #nav-equip-pai.active:not(.curequip){background:rgba(255,255,255,.06)}
+  .nav .sep{height:1px;background:rgba(255,255,255,.1);margin:8px 8px}
+  .side .foot{margin-top:auto;font-size:11px;color:#84A089;padding:8px;line-height:1.5}
+  .main{padding:30px 38px 60px;max-width:1180px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:26px;flex-wrap:wrap}
+  .head .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:5px}
+  .head h1{font-size:30px;font-weight:700}.head p{margin:6px 0 0;color:var(--muted);max-width:56ch}
+  .btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;font-size:13.5px}
+  .btn.primary{background:var(--cellar);color:#fff}.btn.primary:hover{background:var(--cellar-2)}
+  .btn.gold{background:var(--gold);color:#241500}.btn.gold:hover{filter:brightness(1.05)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}.btn.ghost:hover{border-color:var(--ink)}
+  .btn.sm{padding:6px 11px;font-size:12px;border-radius:8px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+  .stat .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .stat .v{font-family:"Bricolage Grotesque";font-weight:800;font-size:28px;margin-top:6px;letter-spacing:-.02em}
+  .stat .v small{font-size:14px;font-weight:600;color:var(--muted);font-family:Inter}
+  .stat .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px}
+  .panel h2{font-size:16px;font-weight:700;padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .panel h2 .tag{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:11px 13px;border-bottom:1px solid var(--line);background:#FCFBF7}
+  td{padding:12px 13px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top}
+  tr:last-child td{border-bottom:0}tr.row:hover{background:#FCFAF4}
+  .num{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px}
+  .st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px}
+  .st.disp{background:var(--green-soft);color:#2E5A3B}.st.campo{background:var(--gold-soft);color:#7A4E0C}.st.manut{background:var(--rust-soft);color:#8A3415}
+  .st.aberta{background:var(--gold-soft);color:#7A4E0C}.st.fechada{background:var(--green-soft);color:#2E5A3B}
+  .chipset{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-family:"IBM Plex Mono";font-size:11.5px;font-weight:500;padding:3px 8px;border-radius:7px;background:#F4F1E8;color:#4A463C;border:1px solid var(--line);white-space:nowrap;display:inline-block}
+  .chip.tag{background:#FFF;border-color:var(--gold);color:#7A4E0C;font-weight:600}
+  .chip.seal{background:var(--green-soft);border-color:#BBD8C2;color:#2E5A3B}
+  .age{display:inline-flex;align-items:center;gap:8px}.age .dot{width:9px;height:9px;border-radius:50%}.age .d{font-family:"IBM Plex Mono";font-weight:600}
+  .empty{padding:46px 20px;text-align:center;color:var(--muted)}
+  .agrow{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s}
+  .agrow:last-child{border-bottom:0}
+  .agrow:hover{background:#FCFAF4}
+  .agtime{font-size:16px;font-weight:600;color:var(--gold);padding-top:1px}
+  .agtitle{font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .agsub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .agdetail{max-height:0;overflow:hidden;transition:max-height .2s ease;margin-top:0}
+  .agrow.open .agdetail{max-height:240px;margin-top:9px}
+  .agrow:not(.open) .agtitle::after{content:"▸";color:var(--line);margin-left:auto;font-size:12px}
+  .agrow.open .agtitle::after{content:"▾";color:var(--muted);margin-left:auto;font-size:12px}
+  .agbadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:6px}
+  .agbadge.inst{background:var(--gold-soft);color:#7A4E0C}
+  .agbadge.rec{background:#EFE6FB;color:#5B3E8A}
+  .estack{display:flex;flex-direction:column;gap:12px}
+  .esec{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .eseccab{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;transition:background .12s}
+  .eseccab:hover{background:#FCFAF4}
+  .eseccab b{font-size:15px}
+  .esecseta{color:var(--gold);font-size:13px;margin-right:4px}
+  .esecresumo{font-size:12.5px;color:var(--muted)}
+  .eseccorpo{padding:0 20px 12px;border-top:1px solid var(--line)}
+  .eseccorpo .head{display:none}
+  .eseccorpo .stats{margin-top:16px}
+  .empty b{display:block;color:var(--ink);font-family:"Bricolage Grotesque";font-weight:700;font-size:16px;margin-bottom:4px}
+  .specs{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .specs b{color:var(--ink);font-family:"IBM Plex Mono";font-weight:600}
+  .scrim{position:fixed;inset:0;background:rgba(26,32,28,.42);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:42px 16px;z-index:50;overflow:auto}
+  .scrim.on{display:flex}
+  .modal{background:var(--card);border-radius:18px;width:100%;max-width:580px;box-shadow:0 30px 80px -20px rgba(26,32,28,.5);animation:rise .22s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .modal header{padding:20px 24px;border-bottom:1px solid var(--line)}
+  .modal header h3{font-size:18px;font-weight:700}.modal header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .modal .body{padding:20px 24px;display:flex;flex-direction:column;gap:16px;max-height:64vh;overflow:auto}
+  .modal footer{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .modal footer .acerto{font-size:12.5px;color:var(--muted)}
+  .modal footer .acerto b{color:var(--ink);font-family:"IBM Plex Mono"}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .field input,.field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .field input:focus,.field select:focus{outline:2px solid var(--gold-soft);border-color:var(--gold)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .itemrow{display:grid;grid-template-columns:1.1fr 1fr .6fr auto;gap:8px;align-items:end}
+  .itemrow .x{border:1px solid var(--line);background:#fff;border-radius:9px;width:38px;height:38px;color:var(--rust);font-size:16px}
+  .addline{background:transparent;border:1px dashed var(--line);border-radius:9px;padding:9px;color:var(--muted);font-weight:600;font-size:12.5px;width:100%}
+  .addline:hover{border-color:var(--gold);color:var(--gold)}
+  .pick{display:flex;flex-wrap:wrap;gap:8px}
+  .pick label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);padding:8px 11px;border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:500}
+  .pick label:has(input:checked){border-color:var(--gold);background:var(--gold-soft);color:#7A4E0C}
+  .accline{display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .accline:last-child{border-bottom:0}
+  .accline .lab{font-weight:600}
+  .accline .lab small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
+  .note{font-size:12px;color:var(--muted);background:#FCFBF7;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:11px 13px;line-height:1.5}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--cellar);color:#fff;padding:12px 20px;border-radius:11px;font-weight:600;font-size:13.5px;opacity:0;transition:.25s;z-index:80;box-shadow:var(--shadow)}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .parque{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:18px 20px}
+  .pq{border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+  .pq .m{font-family:"Bricolage Grotesque";font-weight:700;font-size:15px}
+  .pq .tot{font-family:"IBM Plex Mono";font-size:22px;font-weight:600;margin:4px 0}
+  .pq .br{display:flex;gap:10px;font-size:11px;margin-top:6px;flex-wrap:wrap}
+  .pq .br span{display:flex;align-items:center;gap:4px;color:var(--muted)}
+  .pq .br i{width:8px;height:8px;border-radius:50%;font-style:normal}
+  @media(max-width:860px){.app{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;gap:6px}.side .foot,.brand span,.nav .sep{display:none}.nav{flex-direction:row;flex-wrap:wrap}.main{padding:20px}.stats{grid-template-columns:1fr 1fr}.itemrow{grid-template-columns:1fr 1fr}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="logo"></span><div><b>Tonel</b><br><span>controle de chope</span></div></div>
+    <nav class="nav" id="nav">
+      <button data-v="agenda" class="active"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Semana</button>
+      <button data-v="pendencias"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Em campo e a receber</button>
+      <button data-v="vendas"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v13H4zM4 7l2-3h12l2 3M9 11h6"/></svg>Vendas</button>
+      <button data-v="reservas"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Reservas</button>
+      <button data-v="pedidofabrica"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 6l1 13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2l1-13M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Pedido à fábrica</button>
+      <button data-v="equipamentos" id="nav-equip-pai"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>Equipamentos <span id="equip-seta" style="margin-left:auto;font-size:11px;color:var(--muted)">▸</span></button>
+      <div id="equip-sub" style="display:none">
+        <button data-v="estoque" class="subnav"><span class="subdot"></span>Barris / Estoque</button>
+        <button data-v="chopeiras" class="subnav"><span class="subdot"></span>Chopeiras</button>
+        <button data-v="co2" class="subnav"><span class="subdot"></span>Cilindros / Gás</button>
+        <button data-v="manometros" class="subnav"><span class="subdot"></span>Manômetros</button>
+      </div>
+      <div class="sep"></div>
+      <button data-v="clientes"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Clientes</button>
+      <button data-v="produtos"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l-1 4H7zM7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"/></svg>Produtos</button>
+      <button data-v="financeiro"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 15l3-4 3 3 4-6"/></svg>Financeiro</button>
+    </nav>
+    <div class="foot">A venda é a base: entrega → recolhimento.<br>Lacrado que volta não é cobrado.</div>
+  </aside>
+  <main class="main" id="view"></main>
+</div>
+<div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const mem={};
+const store={
+  async get(k){try{if(window.storage){const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}}catch(e){}return mem[k]!==undefined?mem[k]:null;},
+  async set(k,v){mem[k]=v;try{if(window.storage){await window.storage.set(k,JSON.stringify(v),false);}}catch(e){}}
+};
+// Venda é a entidade central. Cada venda: entrega (saída) + recolhimento (acerto).
+let DB={clientes:[],produtos:[],chopeiras:[],vendas:[],reservas:[],deposito:[],equipamentos:[],cilindros:[]};
+const TAMANHOS=[10,15,20,30,50];
+const today=()=>new Date();
+const iso=d=>new Date(d).toISOString().slice(0,10);
+const br=d=>d?d.split('-').reverse().join('/'):'—';
+const days=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
+const fmtR=n=>'R$ '+(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+let _vid=1,_cid=1,_rid=1,_eid=1,_clid=1;
+function ageColor(d){if(d<=7)return '#3F6B4E';if(d<=14)return '#B8761A';if(d<=21)return '#C66A1E';return '#A8421C';}
+
+async function seedIfEmpty(){
+  const saved=await store.get('db');
+  if(saved){DB=saved;if(!DB.reservas)DB.reservas=[];if(!DB.deposito)DB.deposito=[];if(!DB.equipamentos)DB.equipamentos=[];if(!DB.cilindros)DB.cilindros=[];migrarDiario();migrarEquip();migrarCilindros();_vid=Math.max(1,...DB.vendas.map(v=>v.id),0)+1;_cid=Math.max(1,...DB.chopeiras.map(c=>c.id),0)+1;_rid=Math.max(1,...DB.reservas.map(r=>r.id),0)+1;_eid=Math.max(1,...DB.equipamentos.map(e=>e.id),0)+1;_clid=Math.max(1,...DB.cilindros.map(c=>c.id),0)+1;return;}
+  DB.produtos=[
+    {id:1,estilo:'Lager',fornecedor:'Antártica',custoLitro:5.20,precoLitro:11.00},
+    {id:2,estilo:'Lager',fornecedor:'Skol',custoLitro:4.90,precoLitro:11.00},
+    {id:3,estilo:'IPA',fornecedor:'Cervejaria Local',custoLitro:8.40,precoLitro:16.00},
+    {id:4,estilo:'Vinho',fornecedor:'Importado',custoLitro:9.10,precoLitro:18.00},
+  ];
+  DB.clientes=[
+    {id:1,nome:'Bar do Centro',cidade:'Pouso Alegre',tel:'(35) 99100-1010',endereco:'R. Comendador José Garcia, 245',ref:'em frente à praça'},
+    {id:2,nome:'Buffet Aurora',cidade:'São Gonçalo',tel:'(35) 99100-2020',endereco:'Av. Brasil, 1200',ref:'galpão azul'},
+    {id:3,nome:'Restaurante Pampa',cidade:'Careaçu',tel:'(35) 99100-3030',endereco:'R. das Flores, 88',ref:'ao lado do posto'},
+    {id:4,nome:'Espaço Ribeirão (evento)',cidade:'Pouso Alegre',tel:'(35) 99100-4040',endereco:'Estrada do Ribeirão, km 3',ref:'portão branco grande'},
+    {id:5,nome:'Boteco do Zé',cidade:'Pouso Alegre',tel:'(35) 99100-5050',endereco:'R. São Bento, 412',ref:'esquina com a farmácia'},
+    {id:6,nome:'Choperia Lagoa',cidade:'São Gonçalo',tel:'(35) 99100-6060',endereco:'Av. das Águas, 77',ref:'perto da lagoa'},
+    {id:7,nome:'Pizzaria Forno a Lenha',cidade:'Pouso Alegre',tel:'(35) 99100-7070',endereco:'R. Minas Gerais, 530',ref:''},
+    {id:8,nome:'Rancho do Chopp',cidade:'Careaçu',tel:'(35) 99100-8080',endereco:'Estrada Velha, km 1,5',ref:'fazenda à direita'},
+    {id:9,nome:'Bar da Esquina',cidade:'Pouso Alegre',tel:'(35) 99100-9090',endereco:'R. Tiradentes, 19',ref:''},
+    {id:10,nome:'Salão Festa & Cia',cidade:'São Gonçalo',tel:'(35) 99101-1111',endereco:'Av. Central, 980',ref:'salão amarelo'},
+    {id:11,nome:'Lanchonete Ponto Certo',cidade:'Pouso Alegre',tel:'(35) 99101-2222',endereco:'R. do Comércio, 340',ref:'ao lado do banco'},
+    {id:12,nome:'Sítio Recanto (eventos)',cidade:'Careaçu',tel:'(35) 99101-3333',endereco:'Zona Rural, s/n',ref:'após a ponte'},
+    {id:13,nome:'Bar do Mercado',cidade:'Pouso Alegre',tel:'(35) 99101-4444',endereco:'R. Mercado Municipal, 5',ref:'dentro do mercado'},
+    {id:14,nome:'Espaço Villa Verde',cidade:'São Gonçalo',tel:'(35) 99101-5555',endereco:'Estrada Villa Verde, km 2',ref:'portão de madeira'},
+    {id:15,nome:'Restaurante Sabor Mineiro',cidade:'Pouso Alegre',tel:'(35) 99101-6666',endereco:'Av. Getúlio Vargas, 720',ref:''},
+    {id:16,nome:'Adega São Pedro',cidade:'Careaçu',tel:'(35) 99101-7777',endereco:'R. São Pedro, 101',ref:'igreja em frente'},
+    {id:17,nome:'Clube dos Amigos',cidade:'São Gonçalo',tel:'(35) 99101-8888',endereco:'Av. do Clube, 300',ref:'sede social'},
+    {id:18,nome:'Quintal Bar',cidade:'Pouso Alegre',tel:'(35) 99101-9999',endereco:'R. das Acácias, 56',ref:'casa com jardim'},
+    {id:19,nome:'Buffet Encanto',cidade:'Pouso Alegre',tel:'(35) 99102-1010',endereco:'Av. Brasil, 2400',ref:''},
+    {id:20,nome:'Bar e Petiscaria Tonel',cidade:'São Gonçalo',tel:'(35) 99102-2020',endereco:'R. da Matriz, 8',ref:'centro'},
+  ];
+  const d=n=>iso(new Date(Date.now()-n*86400000));
+  DB.chopeiras=[ch('CH-001','Upper',2,180),ch('CH-002','Upper',2,180),ch('CH-003','Slim',1,90),ch('CH-004','Slim',1,90),ch('CH-005','Mimo',1,60),ch('CH-006','Cancun',4,320)];
+  DB.chopeiras[2].status='manutencao';DB.chopeiras[2].eventos.push({tipo:'manutencao',data:d(3),nota:'Troca de sifão'});
+  // venda aberta (em campo) — evento grande, a recolher E a receber
+  const v1={id:_vid++,clienteId:4,dataEntrega:d(12),horaEntrega:'14:00',dataRecolhe:d(-1),horaRecolhe:'10:00',dataRecolhimento:null,status:'aberta',valor:null,
+    pago:false,dataPagamento:null,forma:null,vencimento:d(-3),chopeiraModelo:'Cancun',
+    itens:[{cat:'barril',tam:50,prodId:1,qtd:8,lacrada:null},{cat:'cilindro',qtd:1}],chopeiraIds:[6]};
+  setCampo(6,4,d(12),v1.id);
+  const v2={id:_vid++,clienteId:1,dataEntrega:d(20),horaEntrega:'10:30',dataRecolhimento:null,status:'aberta',valor:660,
+    pago:true,dataPagamento:d(20),forma:'Pix',vencimento:null,chopeiraModelo:'Upper',
+    itens:[{cat:'barril',tam:30,prodId:1,qtd:2,lacrada:null},{cat:'cilindro',qtd:1}],chopeiraIds:[1]};
+  setCampo(1,1,d(20),v2.id);
+  const v3={id:_vid++,clienteId:3,dataEntrega:d(30),horaEntrega:'09:00',dataRecolhimento:d(25),status:'fechada',valor:800,
+    pago:false,dataPagamento:null,forma:null,vencimento:d(8),chopeiraModelo:'',
+    itens:[{cat:'barril',tam:50,prodId:3,qtd:1,lacrada:0}],chopeiraIds:[]};
+  const v4={id:_vid++,clienteId:2,dataEntrega:d(40),horaEntrega:'16:00',dataRecolhimento:d(36),status:'fechada',valor:1100,
+    pago:true,dataPagamento:d(34),forma:'Dinheiro',vencimento:null,chopeiraModelo:'',
+    itens:[{cat:'barril',tam:50,prodId:2,qtd:2,lacrada:0}],chopeiraIds:[]};
+  // === agendamentos da próxima sexta: modelo escolhido, unidade a definir na hora ===
+  const df=n=>iso(new Date(Date.now()+n*86400000));
+  const prox=new Date();const ate=(5-((prox.getDay()+7)%7)+7)%7||7;const sexta=iso(new Date(Date.now()+ate*86400000));
+  const v5={id:_vid++,clienteId:1,dataEntrega:sexta,horaEntrega:'09:00',dataRecolhimento:null,status:'aberta',valor:null,pago:false,dataPagamento:null,forma:null,vencimento:null,chopeiraModelo:'Upper',itens:[{cat:'barril',tam:50,prodId:1,qtd:2,lacrada:null},{cat:'cilindro',qtd:1}],chopeiraIds:[]};
+  const v6={id:_vid++,clienteId:3,dataEntrega:sexta,horaEntrega:'11:00',dataRecolhimento:null,status:'aberta',valor:null,pago:false,dataPagamento:null,forma:null,vencimento:null,chopeiraModelo:'Slim',itens:[{cat:'barril',tam:30,prodId:2,qtd:1,lacrada:null}],chopeiraIds:[]};
+  const v7={id:_vid++,clienteId:2,dataEntrega:sexta,horaEntrega:'15:30',dataRecolhimento:null,status:'aberta',valor:null,pago:false,dataPagamento:null,forma:null,vencimento:null,chopeiraModelo:'Mimo',itens:[{cat:'barril',tam:50,prodId:3,qtd:3,lacrada:null},{cat:'cilindro',qtd:1}],chopeiraIds:[]};
+  DB.vendas=[v1,v2,v3,v4,v5,v6,v7];
+  // reserva: evento daqui ~55 dias — 2 chopeiras + chopp reservado para a data
+  DB.reservas=[
+    {id:_rid++,clienteId:2,dataEvento:df(55),
+      itens:[{cat:'barril',tam:50,prodId:1,qtd:10},{cat:'barril',tam:30,prodId:3,qtd:4}],
+      chopeiraIds:[2,4],obs:'Casamento — confirmado',status:'reservada'},
+    {id:_rid++,clienteId:1,dataEvento:df(18),
+      itens:[{cat:'barril',tam:50,prodId:2,qtd:6}],
+      chopeiraIds:[5],obs:'Aniversário — evento menor',status:'reservada'},
+  ];
+  DB.equipamentos=[
+    {id:_eid++,classe:'cilindro',nome:'5 kg',total:10},
+    {id:_eid++,classe:'cilindro',nome:'10 kg',total:6},
+    {id:_eid++,classe:'manometro',nome:'1 via',total:8},
+    {id:_eid++,classe:'manometro',nome:'2 vias',total:10},
+    {id:_eid++,classe:'manometro',nome:'3 vias',total:4},
+  ];
+  migrarDiario();
+  migrarEquip();
+  migrarCilindros();
+  gerarVendasTeste(); // BLOCO DE TESTE — remover quando pedir app limpo
+  // saldo inicial do depósito (foto). Calculado APÓS as vendas, para cobrir todas as saídas com folga.
+  const campoSaidas=t=>DB.vendas.reduce((s,v)=>s+diario(v).filter(m=>m.tipo==='saida'&&m.cat==='barril'&&m.tam===t).reduce((a,m)=>a+m.qtd,0),0);
+  const retornados=t=>DB.vendas.reduce((s,v)=>s+diario(v).filter(m=>m.tipo==='retorno'&&m.cat==='barril'&&m.tam===t).reduce((a,m)=>a+m.qtd,0),0);
+  // cheio cadastrado = o que está em campo (saídas − retornos) + uma folga disponível pra vender
+  const FOLGA={50:20,30:18,20:15};
+  DB.deposito=[
+    {tipo:'abertura',deposito:'principal',tam:50,cheio:(campoSaidas(50)-retornados(50))+FOLGA[50],vazio:retornados(50)+9,campo:0,data:iso(today())},
+    {tipo:'abertura',deposito:'principal',tam:30,cheio:(campoSaidas(30)-retornados(30))+FOLGA[30],vazio:retornados(30)+5,campo:0,data:iso(today())},
+    {tipo:'abertura',deposito:'principal',tam:20,cheio:(campoSaidas(20)-retornados(20))+FOLGA[20],vazio:retornados(20)+3,campo:0,data:iso(today())},
+  ];
+  await persist();
+}
+// ===== BLOCO DE VENDAS DE TESTE (gerado a pedido — fácil de remover) =====
+function gerarVendasTeste(){
+  const D=n=>iso(new Date(Date.now()-n*86400000)); // n dias atrás
+  const F=n=>iso(new Date(Date.now()+n*86400000)); // n dias à frente
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  const clientes=DB.clientes.map(c=>c.id);
+  // fila embaralhada de clientes: cada um sai uma vez antes de repetir (distribuição uniforme)
+  let filaCli=[];
+  const proxCli=()=>{if(!filaCli.length){filaCli=clientes.slice().sort(()=>Math.random()-0.5);}return filaCli.shift();};
+  const prods=DB.produtos.map(p=>p.id);
+  const tams=[20,30,50];
+  const modelos=['Upper','Slim','Mimo','Cancun'];
+  const formas=['Pix','Dinheiro','Cartão','Transferência'];
+  let n=0;
+  const novaVenda=(cfg)=>{
+    const cli=proxCli(), prodId=pick(prods), tam=pick(tams), qtd=cfg.qtd||(1+Math.floor(Math.random()*3));
+    const dataEntrega=cfg.entrega;
+    const movs=[{tipo:'saida',cat:'barril',tam,prodId,qtd,data:dataEntrega}];
+    if(cfg.cilindro){const c=cilDisp()[0];if(c){movs.push({tipo:'saida',cat:'cilindro',equipId:null,cilIds:[c.id],qtd:1,data:dataEntrega});c.status='campo';c.vendaId=_vid;}}
+    const v={id:_vid++,clienteId:cli,dataEntrega,horaEntrega:pick(['09:00','10:30','14:00','16:00','18:30']),
+      dataRecolhe:cfg.dataRecolhe||null,horaRecolhe:cfg.dataRecolhe?'10:00':null,
+      dataRecolhimento:null,status:'aberta',valor:null,
+      pago:false,dataPagamento:null,forma:null,vencimento:cfg.vencimento||null,
+      chopeiraModelo:pick(modelos),itens:[{cat:'barril',tam,prodId,qtd}],chopeiraIds:[],movs};
+    // vincula uma chopeira física disponível (enquanto houver no parque) — só pra vendas que ficam em campo
+    if(!cfg.recolhido){
+      const livre=DB.chopeiras.find(c=>c.status==='disponivel');
+      if(livre){livre.status='campo';livre.vendaId=v.id;v.chopeiraIds=[livre.id];v.chopeiraModelo=livre.modelo;}
+    }
+    // aplica estados conforme cenário
+    if(cfg.recolhido){
+      // devolve tudo (vazio = consumido)
+      movs.push({tipo:'retorno',cat:'barril',tam,prodId,qtd,data:cfg.recolhidoEm||dataEntrega,estado:'vazio'});
+      v.dataRecolhimento=cfg.recolhidoEm||dataEntrega;recalcStatusVenda(v);
+    }
+    if(cfg.pago){v.pago=true;v.dataPagamento=cfg.pagoEm||dataEntrega;v.forma=pick(formas);}
+    DB.vendas.push(v);n++;return v;
+  };
+
+  // --- CENÁRIOS VARIADOS ---
+  // 1) Em campo recentes (verde) — entregues nos últimos dias, nada pago
+  for(let i=0;i<4;i++)novaVenda({entrega:D(1+i),cilindro:i%2===0});
+  // 2) Em campo parados há tempo (amarelo→vermelho conforme envelhece)
+  novaVenda({entrega:D(9)});
+  novaVenda({entrega:D(14)});
+  novaVenda({entrega:D(22),cilindro:true});
+  novaVenda({entrega:D(31)}); // bem vermelho
+  // 3) Recolhidas E pagas (concluídas) — várias, pra encher o financeiro
+  for(let i=0;i<6;i++)novaVenda({entrega:D(20+i*3),recolhido:true,recolhidoEm:D(15+i*3),pago:true,pagoEm:D(14+i*3)});
+  // 4) Recolhidas mas NÃO pagas (a receber, vasilhame já voltou)
+  novaVenda({entrega:D(12),recolhido:true,recolhidoEm:D(8),vencimento:D(2)}); // vencido
+  novaVenda({entrega:D(10),recolhido:true,recolhidoEm:D(6),vencimento:F(5)}); // a vencer
+  novaVenda({entrega:D(18),recolhido:true,recolhidoEm:D(13),vencimento:D(6)}); // vencido
+  // 5) Pagas adiantado mas AINDA em campo (pago, falta recolher)
+  novaVenda({entrega:D(5),pago:true,pagoEm:D(5)});
+  novaVenda({entrega:D(7),pago:true,pagoEm:D(6),cilindro:true});
+  // 6) Instalações FUTURAS agendadas (pra Semana)
+  novaVenda({entrega:F(1)});
+  novaVenda({entrega:F(2),dataRecolhe:F(4)});
+  novaVenda({entrega:F(3)});
+  novaVenda({entrega:F(5),dataRecolhe:F(7)});
+  // 7) Recolhimento agendado (em campo, com data de busca marcada)
+  novaVenda({entrega:D(3),dataRecolhe:F(1)});
+  novaVenda({entrega:D(6),dataRecolhe:F(2),cilindro:true});
+  // 8) Evento grande (muito barril)
+  novaVenda({entrega:D(2),qtd:8,cilindro:true});
+  // 9) Vencidos antigos não pagos (pressão no financeiro)
+  novaVenda({entrega:D(40),recolhido:true,recolhidoEm:D(35),vencimento:D(25)});
+  novaVenda({entrega:D(28),recolhido:true,recolhidoEm:D(24),vencimento:D(18)});
+}
+function ch(etiqueta,modelo,torneiras,resfriamento){return{id:_cid++,etiqueta,modelo,torneiras,potencia:resfriamento*2,resfriamento,status:'disponivel',clienteId:null,desde:null,vendaId:null,eventos:[{tipo:'cadastro',data:iso(today())}]};}
+function setCampo(chId,clienteId,data,vendaId){const c=DB.chopeiras.find(x=>x.id===chId);if(c){c.status='campo';c.clienteId=clienteId;c.desde=data;c.vendaId=vendaId;c.eventos.push({tipo:'saida',data,clienteId});}}
+async function persist(){await store.set('db',DB);}
+
+// Cilindro vira UNIDADE INDIVIDUAL: {id, etiqueta, capacidade, tara, cargaAtual, status, vendaId, pesagens:[]}
+// carga = gás em kg dentro do cilindro. Limite de reabastecimento: < 1kg.
+function migrarCilindros(){
+  if(DB.cilindros.length)return; // já migrado
+  const tipos=DB.equipamentos.filter(e=>e.classe==='cilindro');
+  if(!tipos.length)return;
+  let n=1;const unidadesPorTipo={};
+  tipos.forEach(t=>{
+    unidadesPorTipo[t.id]=[];
+    const cap=parseFloat(t.nome)||5;
+    const tara=cap*1.6+3;
+    for(let i=0;i<t.total;i++){
+      const cil={id:_clid++,etiqueta:'CIL-'+String(n++).padStart(3,'0'),capacidade:cap,tara:+tara.toFixed(1),cargaAtual:cap,status:'disponivel',vendaId:null,pesagens:[]};
+      DB.cilindros.push(cil);unidadesPorTipo[t.id].push(cil);
+    }
+  });
+  DB.vendas.forEach(v=>{(v.movs||[]).forEach(m=>{
+    if(m.cat==='equip'){const e=DB.equipamentos.find(x=>x.id===m.equipId);
+      if(e&&e.classe==='cilindro'){
+        m.cat='cilindro';delete m.equipId;
+        const pool=unidadesPorTipo[e.id]||[];
+        const livres=pool.filter(c=>c.status==='disponivel');
+        const usar=livres.slice(0,m.qtd);
+        m.cilIds=usar.map(c=>c.id);
+        if(m.tipo==='saida'&&v.status==='aberta')usar.forEach(c=>{c.status='campo';c.vendaId=v.id;});
+      }
+    }
+  });});
+  DB.equipamentos=DB.equipamentos.filter(e=>e.classe!=='cilindro');
+}
+
+// Migração: vendas no formato antigo (itens fixos + lacrada) ganham um diário equivalente.
+// Catálogo de equipamentos (cilindro/manômetro) por tipo, controle por quantidade.
+// equip: {id, classe:'cilindro'|'manometro', nome, total} — total = patrimônio cadastrado
+// No diário da venda, equipamento sai/volta como mov {cat:'equip', equipId, qtd}
+function migrarEquip(){
+  // garante catálogo mínimo
+  if(!DB.equipamentos.length){
+    DB.equipamentos=[
+      {id:_eid++,classe:'cilindro',nome:'5 kg',total:0},
+      {id:_eid++,classe:'cilindro',nome:'10 kg',total:0},
+      {id:_eid++,classe:'manometro',nome:'1 via',total:0},
+      {id:_eid++,classe:'manometro',nome:'2 vias',total:0},
+      {id:_eid++,classe:'manometro',nome:'3 vias',total:0},
+    ];
+  }
+  // converte movs antigos de cilindro (cat:'cilindro', sem equipId) para o tipo padrão de cilindro
+  const cil5=DB.equipamentos.find(e=>e.classe==='cilindro');
+  DB.vendas.forEach(v=>{(v.movs||[]).forEach(m=>{
+    if(m.cat==='cilindro'&&!m.equipId&&cil5){m.cat='equip';m.equipId=cil5.id;}
+  });});
+}
+
+function migrarDiario(){
+  DB.vendas.forEach(v=>{
+    if(v.movs)return; // já migrada
+    const movs=[];
+    (v.itens||[]).forEach(i=>{
+      movs.push({tipo:'saida',cat:i.cat,tam:i.tam,prodId:i.prodId,qtd:i.qtd,data:v.dataEntrega});
+    });
+    if(v.status==='fechada'){
+      // reconstrói os retornos: lacrados como 'lacrado', o resto como 'vazio' (consumido)
+      (v.itens||[]).forEach(i=>{
+        if(i.cat==='barril'){
+          const lac=i.lacrada||0;
+          if(lac>0)movs.push({tipo:'retorno',cat:'barril',tam:i.tam,prodId:i.prodId,qtd:lac,data:v.dataRecolhimento,estado:'lacrado'});
+          const vaz=i.qtd-lac;
+          if(vaz>0)movs.push({tipo:'retorno',cat:'barril',tam:i.tam,prodId:i.prodId,qtd:vaz,data:v.dataRecolhimento,estado:'vazio'});
+        }else{
+          movs.push({tipo:'retorno',cat:i.cat,qtd:i.qtd,data:v.dataRecolhimento,estado:'vazio'});
+        }
+      });
+    }
+    v.movs=movs;
+  });
+}
+
+function clienteNome(id){const c=DB.clientes.find(c=>c.id===id);return c?c.nome:'—';}
+function cliente(id){return DB.clientes.find(c=>c.id===id);}
+// endereço de entrega da venda: o da venda se houver, senão o do cadastro do cliente
+function endVenda(v){const c=cliente(v.clienteId)||{};const e=v.enderecoEntrega||c.endereco||'';const r=v.refEntrega||c.ref||'';const alt=!!v.enderecoEntrega;return{end:e,ref:r,alt};}
+function diaSemana(d){return ['domingo','segunda','terça','quarta','quinta','sexta','sábado'][new Date(d+'T12:00').getDay()];}
+function prod(id){return DB.produtos.find(p=>p.id===id);}
+function vendasAbertas(){return DB.vendas.filter(v=>v.status==='aberta');}
+
+// ===== DIÁRIO DE MOVIMENTAÇÕES (fonte de verdade dentro da venda) =====
+// Cada mov: {tipo:'saida'|'retorno', cat:'barril'|'cilindro', tam, prodId, qtd, data,
+//            estado:'lacrado'|'vazio'|'defeito' (só em retorno)}
+// Chopeiras seguem como unidades próprias (venda.chopeiraIds), não entram no diário de barril/cilindro.
+function diario(v){return v.movs||[];}
+// quantidade em campo por (cat,tam): Σ saída − Σ retorno
+function emCampoVenda(v,cat,tam){
+  return diario(v).filter(m=>m.cat===cat&&(cat!=='barril'||m.tam===tam)).reduce((s,m)=>s+(m.tipo==='saida'?m.qtd:-m.qtd),0);
+}
+// agrupa o que está em campo nesta venda: [{cat,tam,prodId,qtd,desde}]
+function emCampoItens(v){
+  const grupos={};
+  diario(v).forEach(m=>{const k=m.cat+'|'+(m.tam||'')+'|'+(m.prodId||'');grupos[k]=grupos[k]||{cat:m.cat,tam:m.tam,prodId:m.prodId,qtd:0,desde:m.data};grupos[k].qtd+=(m.tipo==='saida'?m.qtd:-m.qtd);if(m.tipo==='saida'&&m.data<grupos[k].desde)grupos[k].desde=m.data;});
+  return Object.values(grupos).filter(g=>g.qtd>0);
+}
+function vendaTemAtivoEmCampo(v){return emCampoItens(v).length>0;}
+function recalcStatusVenda(v){
+  // venda fecha quando nada (barril nem cilindro nem chopeira) está em campo
+  const chopFora=v.chopeiraIds.some(id=>{const c=DB.chopeiras.find(x=>x.id===id);return c&&c.status==='campo'&&c.vendaId===v.id;});
+  if(!vendaTemAtivoEmCampo(v)&&!chopFora){if(v.status!=='fechada'){v.status='fechada';if(!v.dataRecolhimento)v.dataRecolhimento=iso(today());}}
+  else v.status='aberta';
+}
+// consumido = Σ saída(barril) − Σ retorno lacrado − Σ retorno defeito  (vazio conta como consumido)
+function consumidoVenda(v){
+  const saida=diario(v).filter(m=>m.tipo==='saida'&&m.cat==='barril');
+  const retNaoConsome=diario(v).filter(m=>m.tipo==='retorno'&&m.cat==='barril'&&(m.estado==='lacrado'||m.estado==='defeito'));
+  // por litro, usando tam de cada mov
+  const litrosSaida=saida.reduce((s,m)=>s+m.qtd*m.tam,0);
+  const litrosNaoConsome=retNaoConsome.reduce((s,m)=>s+m.qtd*m.tam,0);
+  return {litros:litrosSaida-litrosNaoConsome,saida,retNaoConsome};
+}
+function valorSugerido(v){
+  // soma por produto: (litros saída − litros não-consumidos do mesmo produto) × preço
+  const porProd={};
+  diario(v).filter(m=>m.cat==='barril').forEach(m=>{const sign=m.tipo==='saida'?1:(m.estado==='lacrado'||m.estado==='defeito'?-1:0);if(sign===0)return;porProd[m.prodId]=(porProd[m.prodId]||0)+sign*m.qtd*m.tam;});
+  return Object.entries(porProd).reduce((s,[pid,litros])=>{const p=prod(+pid);return s+(p?Math.max(0,litros)*p.precoLitro:0);},0);
+}
+function custoVenda(v){
+  const porProd={};
+  diario(v).filter(m=>m.cat==='barril').forEach(m=>{const sign=m.tipo==='saida'?1:(m.estado==='lacrado'||m.estado==='defeito'?-1:0);if(sign===0)return;porProd[m.prodId]=(porProd[m.prodId]||0)+sign*m.qtd*m.tam;});
+  return Object.entries(porProd).reduce((s,[pid,litros])=>{const p=prod(+pid);return s+(p?Math.max(0,litros)*p.custoLitro:0);},0);
+}
+// barris perdidos por defeito (KPI)
+function barrisDefeito(v){return diario(v).filter(m=>m.tipo==='retorno'&&m.cat==='barril'&&m.estado==='defeito').reduce((s,m)=>s+m.qtd,0);}
+function barrisEmCampo(){return vendasAbertas().reduce((s,v)=>s+emCampoItens(v).filter(g=>g.cat==='barril').reduce((a,g)=>a+g.qtd,0),0);}
+function cilindrosEmCampo(){return vendasAbertas().reduce((s,v)=>s+emCampoItens(v).filter(g=>g.cat==='cilindro').reduce((a,g)=>a+g.qtd,0),0);}
+
+// ===== ESTOQUE DO DEPÓSITO (derivado) =====
+// DB.deposito: diário de movimentos do depósito.
+//   {tipo:'abertura', tam, cheio, vazio, campo, data}   -> foto inicial por tamanho
+//   {tipo:'troca', tam, n, data}                        -> dia da fábrica: devolve n vazios, recebe n cheios (1:1)
+//   {tipo:'ajuste', tam, estado:'disponivel'|'vazio'|'campo', delta, data, motivo}
+// Três estados que CONSERVAM o total: disponivel (cheio/vendável, inclui lacrados que voltaram), campo, vazio.
+// Invariante: disponivel + campo + vazio = total cadastrado.
+function barrisEmCampoTam(tam){
+  return vendasAbertas().reduce((s,v)=>s+emCampoItens(v).filter(g=>g.cat==='barril'&&g.tam===tam).reduce((a,g)=>a+g.qtd,0),0);
+}
+function retornosTam(tam,estado){
+  return DB.vendas.reduce((s,v)=>s+diario(v).filter(m=>m.tipo==='retorno'&&m.cat==='barril'&&m.tam===tam&&m.estado===estado).reduce((a,m)=>a+m.qtd,0),0);
+}
+function saidasTam(tam){
+  return DB.vendas.reduce((s,v)=>s+diario(v).filter(m=>m.tipo==='saida'&&m.cat==='barril'&&m.tam===tam).reduce((a,m)=>a+m.qtd,0),0);
+}
+function depMovs(tam){return DB.deposito.filter(m=>m.tam===tam);}
+function temAbertura(){return DB.deposito.some(m=>m.tipo==='abertura');}
+function estoqueTam(tam){
+  const ab={cheio:0,vazio:0,campo:0};
+  DB.deposito.filter(m=>m.tipo==='abertura'&&m.tam===tam).forEach(m=>{ab.cheio+=m.cheio||0;ab.vazio+=m.vazio||0;ab.campo+=m.campo||0;});
+  const trocaN=DB.deposito.filter(m=>m.tipo==='troca'&&m.tam===tam).reduce((s,m)=>s+(m.n||0),0);
+  const aj=(estado)=>DB.deposito.filter(m=>m.tipo==='ajuste'&&m.tam===tam&&m.estado===estado).reduce((s,m)=>s+(m.delta||0),0);
+  const S=saidasTam(tam), RL=retornosTam(tam,'lacrado'), RV=retornosTam(tam,'vazio'), RD=retornosTam(tam,'defeito');
+  // disponivel: começa com cheio0, sai em cada SAIDA, volta em cada retorno lacrado, +cheios da troca
+  const disponivel=ab.cheio - S + RL + trocaN + aj('disponivel');
+  // campo: começa com campo0, +cada saída, −cada retorno (qualquer estado)
+  const campo=ab.campo + S - (RL+RV+RD) + aj('campo');
+  // vazio: começa com vazio0, +retornos vazio e defeito, −vazios da troca
+  const vazio=ab.vazio + RV + RD - trocaN + aj('vazio');
+  const total=disponivel+campo+vazio;
+  return {tam,disponivel,campo,vazio,total};
+}
+function estoqueTodos(){return TAMANHOS.map(estoqueTam).filter(e=>e.total!==0||depMovs(e.tam).length);}
+
+// ===== EQUIPAMENTOS (cilindro/manômetro) — controle por quantidade-com-tipo =====
+function equip(id){return DB.equipamentos.find(e=>e.id===id);}
+function equipsClasse(classe){return DB.equipamentos.filter(e=>e.classe===classe);}
+// ===== CILINDROS individuais com carga de gás =====
+const CIL_REABASTECER=1; // kg: abaixo disso, precisa reabastecer
+function cil(id){return DB.cilindros.find(c=>c.id===id);}
+function cilDisp(){return DB.cilindros.filter(c=>c.status==='disponivel');}
+function cilCampo(){return DB.cilindros.filter(c=>c.status==='campo');}
+function cilBaixos(){return DB.cilindros.filter(c=>c.status==='disponivel'&&c.cargaAtual<CIL_REABASTECER);}
+function cilProntos(){return DB.cilindros.filter(c=>c.status==='disponivel'&&c.cargaAtual>=CIL_REABASTECER);}
+// cilindros em campo numa venda (derivado do diário)
+function cilEmCampoVenda(v){
+  const ids={};
+  diario(v).filter(m=>m.cat==='cilindro').forEach(m=>{(m.cilIds||[]).forEach(id=>{ids[id]=(ids[id]||0)+(m.tipo==='saida'?1:-1);});});
+  return Object.entries(ids).filter(([id,n])=>n>0).map(([id])=>cil(+id)).filter(Boolean);
+}
+function equipEmCampo(equipId){
+  return vendasAbertas().reduce((s,v)=>s+diario(v).filter(m=>m.cat==='equip'&&m.equipId===equipId).reduce((a,m)=>a+(m.tipo==='saida'?m.qtd:-m.qtd),0),0);
+}
+function equipEstoque(equipId){
+  const e=equip(equipId);if(!e)return{total:0,campo:0,disponivel:0};
+  const campo=equipEmCampo(equipId);
+  return {id:equipId,nome:e.nome,classe:e.classe,total:e.total,campo,disponivel:e.total-campo};
+}
+// em campo de equipamento numa venda (para recolher)
+function equipEmCampoVenda(v){
+  const g={};
+  diario(v).filter(m=>m.cat==='equip').forEach(m=>{g[m.equipId]=(g[m.equipId]||0)+(m.tipo==='saida'?m.qtd:-m.qtd);});
+  return Object.entries(g).filter(([id,q])=>q>0).map(([id,q])=>({equipId:+id,qtd:q,nome:equip(+id)?equip(+id).nome:'?',classe:equip(+id)?equip(+id).classe:''}));
+}
+function equipChips(v){
+  // mostra equipamentos que saíram na venda (saída total, p/ a folha do time)
+  const g={};
+  diario(v).filter(m=>m.cat==='equip'&&m.tipo==='saida').forEach(m=>{g[m.equipId]=(g[m.equipId]||0)+m.qtd;});
+  return Object.entries(g).map(([id,q])=>{const e=equip(+id);return e?`<span class="chip">${q}× ${e.nome}</span>`:'';}).join(' ');
+}
+const chCampo=()=>DB.chopeiras.filter(c=>c.status==='campo');
+const chDisp=()=>DB.chopeiras.filter(c=>c.status==='disponivel');
+const chManut=()=>DB.chopeiras.filter(c=>c.status==='manutencao');
+function receitaRealizada(){return DB.vendas.filter(v=>v.status==='fechada').reduce((s,v)=>s+(v.valor||0),0);}
+function receitaPrevista(){return vendasAbertas().reduce((s,v)=>s+(v.valor||valorSugerido(v)),0);}
+function valorVenda(v){return v.valor!=null?v.valor:valorSugerido(v);}
+function aReceberLista(){return DB.vendas.filter(v=>!v.pago).sort((a,b)=>{const av=a.vencimento?new Date(a.vencimento):new Date('2999');const bv=b.vencimento?new Date(b.vencimento):new Date('2999');return av-bv;});}
+function totalAReceber(){return aReceberLista().reduce((s,v)=>s+valorVenda(v),0);}
+function recebidoTotal(){return DB.vendas.filter(v=>v.pago).reduce((s,v)=>s+valorVenda(v),0);}
+function vencido(v){return !v.pago&&v.vencimento&&new Date(v.vencimento)<today();}
+function aRecolherLista(){return vendasAbertas().sort((a,b)=>new Date(a.dataEntrega)-new Date(b.dataEntrega));}
+// ---- reservas e planejamento semanal ----
+function litrosItem(i){return i.cat==='barril'?i.tam*i.qtd:0;}
+function litrosReserva(r){return r.itens.reduce((s,i)=>s+litrosItem(i),0);}
+function reservasFuturas(){return DB.reservas.filter(r=>r.status==='reservada').sort((a,b)=>new Date(a.dataEvento)-new Date(b.dataEvento));}
+function reservaChopeira(chId){return reservasFuturas().find(r=>r.chopeiraIds.includes(chId));}
+// retorna as chopeiras (do conjunto dado) que já estão reservadas por outra reserva futura
+function chopeirasEmConflito(chIds,ignorarReservaId){
+  return chIds.filter(id=>reservasFuturas().some(r=>r.id!==ignorarReservaId&&r.chopeiraIds.includes(id)));
+}
+function modelosChopeira(){return [...new Set(DB.chopeiras.map(c=>c.modelo))];}
+function chDispModelo(modelo){return chDisp().filter(c=>c.modelo===modelo);}
+function chopeiraVendaChip(v){
+  if(v.chopeiraIds&&v.chopeiraIds.length)return v.chopeiraIds.map(id=>{const c=DB.chopeiras.find(x=>x.id===id);return c?`<span class="chip tag">${c.etiqueta} · ${c.modelo}</span>`:'';}).join(' ');
+  if(v.chopeiraModelo)return `<span class="chip tag" style="opacity:.75">${v.chopeiraModelo} (a definir)</span>`;
+  return '';
+}
+function semanaInicio(d){const x=new Date(d);const dow=(x.getDay()+6)%7;x.setDate(x.getDate()-dow);x.setHours(0,0,0,0);return x;}
+function semanaLabel(d){const i=semanaInicio(d);const f=new Date(i);f.setDate(f.getDate()+6);const fmt=z=>('0'+z.getDate()).slice(-2)+'/'+('0'+(z.getMonth()+1)).slice(-2);return fmt(i)+' a '+fmt(f);}
+// média semanal de litros consumidos (vendas fechadas das últimas ~8 semanas), por produto
+function consumoSemanalMedio(){
+  const fechadas=DB.vendas.filter(v=>v.status==='fechada'&&v.dataRecolhimento);
+  if(!fechadas.length)return {total:0,porProd:{}};
+  const datas=fechadas.map(v=>new Date(v.dataRecolhimento));
+  const min=new Date(Math.min(...datas)),max=new Date(Math.max(...datas));
+  const semanas=Math.max(1,Math.ceil((max-min)/(7*86400000))+1);
+  const porProd={};let total=0;
+  fechadas.forEach(v=>diario(v).filter(m=>m.cat==='barril').forEach(m=>{const sign=m.tipo==='saida'?1:(m.estado==='lacrado'||m.estado==='defeito'?-1:0);if(!sign)return;const l=sign*m.qtd*m.tam;total+=l;const p=prod(m.prodId);const key=p?p.estilo+' · '+p.fornecedor:'—';porProd[key]=(porProd[key]||0)+l;}));
+  Object.keys(porProd).forEach(k=>porProd[k]=porProd[k]/semanas);
+  return {total:total/semanas,porProd,semanas};
+}
+// litros reservados por semana (próximas N semanas) e por produto
+function reservasPorSemana(nSemanas){
+  const hojeIni=semanaInicio(today());const out=[];
+  for(let w=0;w<nSemanas;w++){
+    const ini=new Date(hojeIni);ini.setDate(ini.getDate()+w*7);const fim=new Date(ini);fim.setDate(fim.getDate()+7);
+    const rs=reservasFuturas().filter(r=>{const d=new Date(r.dataEvento);return d>=ini&&d<fim;});
+    const porProd={};let litros=0;
+    rs.forEach(r=>r.itens.filter(i=>i.cat==='barril').forEach(i=>{const l=litrosItem(i);litros+=l;const p=prod(i.prodId);const key=p?p.estilo+' · '+p.fornecedor:'—';porProd[key]=(porProd[key]||0)+l;}));
+    out.push({ini:iso(ini),label:semanaLabel(ini),litros,porProd,reservas:rs});
+  }
+  return out;
+}
+// AGENDADO por tamanho de barril, na janela [hoje, hoje+dias]: instalações marcadas + reservas
+function agendadoPorTam(dias){
+  const ini=iso(today());const fimD=new Date(Date.now()+dias*86400000);const fim=iso(fimD);
+  const porTam={};TAMANHOS.forEach(t=>porTam[t]=0);
+  // instalações agendadas (vendas abertas com entrega na janela) — conta os barris que vão sair
+  DB.vendas.filter(v=>v.status==='aberta'&&v.dataEntrega>=ini&&v.dataEntrega<=fim).forEach(v=>{
+    (v.itens||[]).filter(i=>i.cat==='barril').forEach(i=>{porTam[i.tam]=(porTam[i.tam]||0)+i.qtd;});
+  });
+  // reservas (eventos futuros) na janela
+  reservasFuturas().filter(r=>r.dataEvento>=ini&&r.dataEvento<=fim).forEach(r=>{
+    (r.itens||[]).filter(i=>i.cat==='barril').forEach(i=>{porTam[i.tam]=(porTam[i.tam]||0)+(i.qtd||0);});
+  });
+  return porTam;
+}
+
+let view=document.getElementById('view');let current='agenda';
+// captura o HTML que uma função de render escreveria em `view`, sem alterá-la
+function capturaHTML(fn){const real=view;let buf='';view={set innerHTML(v){buf=v;},get innerHTML(){return buf;}};try{fn();}finally{view=real;}return buf;}
+function renderEquip(){
+  const totBarris=TAMANHOS.reduce((s,t)=>s+estoqueTam(t).total,0);
+  const dispBarris=TAMANHOS.reduce((s,t)=>s+Math.max(0,estoqueTam(t).disponivel),0);
+  const campoBarris=TAMANHOS.reduce((s,t)=>s+estoqueTam(t).campo,0);
+  const baixos=cilBaixos().length;
+  const manDisp=equipsClasse('manometro').reduce((s,e)=>s+equipEstoque(e.id).disponivel,0);
+  const cardGrande=(view2,titulo,linhas,alerta)=>`<div class="panel" style="cursor:pointer;transition:border-color .12s" onclick="setView('${view2}')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--line)'">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:4px 4px 0"><h2 style="border:0;padding:0;margin:0">${titulo}</h2>${alerta?`<span class="chip" style="background:var(--rust-soft);border-color:#E0A892;color:#8A3415;font-weight:600">${alerta}</span>`:''}</div>
+    <div style="display:flex;gap:24px;padding:12px 4px 4px">${linhas.map(l=>`<div><div class="mono" style="font-size:24px;font-weight:600;color:${l.cor||'var(--ink)'}">${l.v}</div><div style="font-size:12px;color:var(--muted)">${l.k}</div></div>`).join('')}</div>
+    <div style="padding:0 4px;font-size:12.5px;color:var(--gold);font-weight:600">Abrir →</div>
+  </div>`;
+  view.innerHTML=headHTML('Patrimônio','Equipamentos','Tudo que você controla fisicamente. Toque num grupo para gerenciar, ou use os subitens no menu.','')+
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      ${cardGrande('estoque','Barris / Estoque',[{k:'disponíveis',v:dispBarris,cor:'var(--green-ok)'},{k:'em campo',v:campoBarris,cor:'var(--gold)'},{k:'total',v:totBarris}])}
+      ${cardGrande('chopeiras','Chopeiras',[{k:'livres',v:chDisp().length,cor:'var(--green-ok)'},{k:'em campo',v:chCampo().length,cor:'var(--gold)'},{k:'manut.',v:chManut().length,cor:'var(--rust)'}])}
+      ${cardGrande('co2','Cilindros / Gás',[{k:'prontos',v:cilProntos().length,cor:'var(--green-ok)'},{k:'em campo',v:cilCampo().length,cor:'var(--gold)'}],baixos?`⚠ ${baixos} reabastecer`:'')}
+      ${cardGrande('manometros','Manômetros',[{k:'disponíveis',v:manDisp,cor:'var(--green-ok)'},{k:'tipos',v:equipsClasse('manometro').length}])}
+    </div>`;
+}
+const EQUIP_SUBS=['estoque','chopeiras','co2','manometros'];
+function setView(v){current=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
+  if(EQUIP_SUBS.includes(v)){abreEquipMenu(true);document.getElementById('nav-equip-pai').classList.add('active');}
+  render();}
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.v==='equipamentos'){const sub=document.getElementById('equip-sub');const estavaAberto=sub.style.display!=='none'&&current==='equipamentos';abreEquipMenu(!estavaAberto);}
+  setView(b.dataset.v);});
+function abreEquipMenu(abrir){const sub=document.getElementById('equip-sub'),seta=document.getElementById('equip-seta');if(!sub)return;sub.style.display=abrir?'block':'none';if(seta)seta.textContent=abrir?'▾':'▸';}
+function toggleEquipMenu(e){const sub=document.getElementById('equip-sub');const aberto=sub.style.display!=='none';abreEquipMenu(!aberto);}
+function headHTML(e,t,d,a){return `<div class="head"><div><div class="eyebrow">${e}</div><h1>${t}</h1>${d?`<p>${d}</p>`:''}</div>${a||''}</div>`;}
+function stBadge(s){return s==='disponivel'?'<span class="st disp">● Disponível</span>':s==='campo'?'<span class="st campo">● Em campo</span>':'<span class="st manut">● Manutenção</span>';}
+function vBadge(v){return v.status==='aberta'?'<span class="st aberta">● Em campo</span>':'<span class="st fechada">● Acertada</span>';}
+function itensChips(v){return (v.itens||[]).map(i=>i.cat==='cilindro'?`<span class="chip">${i.qtd}× cilindro</span>`:`<span class="chip">${i.qtd}× ${i.tam}L</span>`).join(' ');}
+// todos os equipamentos em campo de uma venda, como chips (barril + chopeira + cilindro + manômetro)
+function emCampoChipsCompleto(v){
+  const chips=[];
+  // barris em campo (derivado)
+  emCampoItens(v).filter(g=>g.cat==='barril').forEach(g=>chips.push(`<span class="chip">${g.qtd}× ${g.tam}L</span>`));
+  // chopeiras (unidades vinculadas, em campo)
+  v.chopeiraIds.forEach(id=>{const c=DB.chopeiras.find(x=>x.id===id);if(c&&c.status==='campo'&&c.vendaId===v.id)chips.push(`<span class="chip tag">🍺 ${c.etiqueta}</span>`);});
+  // cilindros individuais em campo
+  cilEmCampoVenda(v).forEach(c=>chips.push(`<span class="chip" style="background:#EAF1FB;border-color:#BcD3EF;color:#2C5A92">⛽ ${c.etiqueta}</span>`));
+  // manômetros (quantidade por tipo)
+  equipEmCampoVenda(v).filter(g=>g.classe==='manometro').forEach(g=>chips.push(`<span class="chip">${g.qtd}× ${g.nome}</span>`));
+  return chips.join(' ');
+}
+
+function render(){({agenda:renderAgenda,vendas:renderVendas,pendencias:renderPendencias,reservas:renderReservas,pedidofabrica:renderPedidoFabrica,equipamentos:renderEquip,estoque:renderEstoque,chopeiras:renderChopeiras,co2:renderCO2,manometros:renderEquipamentos,clientes:renderClientes,produtos:renderProdutos,financeiro:renderFinanceiro}[current])();}
+
+let semanaDia='todos';let semanaFiltro='tudo'; // tudo | instalar | hoje | semdata | unidade
+function renderAgenda(){
+  const hojeIso=iso(today());
+  const F=semanaFiltro;
+  const soInstalar=F==='instalar'||F==='unidade'; // esses filtros mostram só instalações
+  // vendas com unidade pendente (modelo definido, sem etiqueta)
+  const pendUnidade=v=>v.status==='aberta'&&v.dataEntrega>=hojeIso&&!v.chopeiraIds.length&&v.chopeiraModelo;
+  // eventos da semana: instalações (entrega futura) + recolhimentos agendados (dataRecolhe futura)
+  const eventos=[];
+  DB.vendas.filter(v=>v.status==='aberta').forEach(v=>{
+    if(v.dataEntrega>=hojeIso){
+      if(F==='unidade'&&!pendUnidade(v))return; // só pendentes de etiqueta
+      eventos.push({tipo:'instalar',v,dia:v.dataEntrega,hora:v.horaEntrega||''});
+    }
+    if(v.dataRecolhe&&v.dataRecolhe>=hojeIso&&!soInstalar)eventos.push({tipo:'recolher',v,dia:v.dataRecolhe,hora:v.horaRecolhe||''});
+  });
+  // filtro "Hoje": só eventos de hoje
+  let eventosF=F==='hoje'?eventos.filter(e=>e.dia===hojeIso):eventos;
+  const porDia={};
+  eventosF.forEach(e=>{(porDia[e.dia]=porDia[e.dia]||[]).push(e);});
+  let dias=Object.keys(porDia).sort();
+  const diasTodos=dias.slice();
+  if(semanaDia!=='todos')dias=dias.filter(d=>d===semanaDia);
+  const detalhado=semanaDia!=='todos'; // dia escolhido -> linhas já abertas pro time
+  // recolhimentos SEM data marcada (vasilhame fora, ninguém agendou ainda)
+  const semDataTodos=vendasAbertas().filter(v=>(vendaTemAtivoEmCampo(v)||v.chopeiraIds.some(id=>{const c=DB.chopeiras.find(x=>x.id===id);return c&&c.status==='campo'&&c.vendaId===v.id;}))&&!(v.dataRecolhe&&v.dataRecolhe>=hojeIso))
+    .sort((a,b)=>new Date(a.dataEntrega)-new Date(b.dataEntrega));
+  // o bloco "sem data" aparece em 'tudo' e 'semdata'; some nos filtros de instalação e hoje
+  // semDataTodos: contagem para o card-atalho (a lista vive em "Em campo e a receber")
+  const instHoje=eventos.filter(e=>e.tipo==='instalar'&&e.dia===hojeIso).length;
+  const recHoje=eventos.filter(e=>e.tipo==='recolher'&&e.dia===hojeIso).length;
+  const semUnid=DB.vendas.filter(pendUnidade).length;
+  const instFuturas=DB.vendas.filter(v=>v.status==='aberta'&&v.dataEntrega>=hojeIso).length;
+
+  const cardSel=(val,titulo,valorHtml,sub,cor)=>{const on=F===val;
+    return `<div class="stat" style="cursor:pointer;${on?'outline:2px solid '+(cor||'var(--gold)')+';outline-offset:-1px':''}" onclick="semanaFiltro=(semanaFiltro==='${val}'?'tudo':'${val}');render()"><div class="k">${titulo}</div><div class="v mono"${cor?` style="color:${cor}"`:''}>${valorHtml}</div><div class="sub">${on?'filtrando ✓':sub}</div></div>`;};
+  const resumo=`<div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      ${cardSel('instalar','Instalações',instFuturas,'a fazer — clique p/ ver só','var(--gold)')}
+      ${cardSel('hoje','Hoje',`<span style="color:var(--gold)">${instHoje}</span> <span style="font-size:15px;color:var(--muted)">inst.</span> · <span style="color:#5B3E8A">${recHoje}</span> <span style="font-size:15px;color:var(--muted)">rec.</span>`,diaSemana(hojeIso))}
+      ${cardSel('unidade','Unidade a definir',semUnid,semUnid?'falta etiqueta antes de sair':'tudo definido',semUnid?'var(--rust)':'var(--green-ok)')}
+      <div class="stat" style="cursor:pointer" onclick="setView('pendencias')"><div class="k">Recolher sem data <span style="color:var(--gold);font-weight:700">↗</span></div><div class="v mono" style="color:${semDataTodos.length?'var(--rust)':'var(--green-ok)'}">${semDataTodos.length}</div><div class="sub">${semDataTodos.length?'gerenciar em Em campo':'tudo agendado'}</div></div>
+    </div>`;
+
+  const ab=detalhado?' open':'';
+  const linhaInstalar=(v)=>{const c=cliente(v.clienteId)||{};
+    const chsList=v.chopeiraIds.map(id=>DB.chopeiras.find(y=>y.id===id)).filter(Boolean);
+    const unidade=chsList.length?chsList.map(x=>x.etiqueta).join(', '):(v.chopeiraModelo?v.chopeiraModelo+' (def.)':'');
+    const semCh=!chsList.length&&v.chopeiraModelo;
+    return `<div class="agrow${ab}" onclick="this.classList.toggle('open')">
+      <div class="agtime"><span class="agbadge inst">▸ instalar</span><div class="mono" style="margin-top:3px;font-size:14px;font-weight:600;color:var(--gold)">${v.horaEntrega||'--:--'}</div></div>
+      <div class="agmain">
+        <div class="agtitle">${c.nome||'—'} ${unidade?`<span class="chip tag" style="font-size:10.5px">${unidade}</span>`:''}${semCh?' <span style="color:var(--rust);font-size:11px">⚠</span>':''}</div>
+        <div class="agsub">${(()=>{const ev=endVenda(v);return ev.alt?'<span style="color:var(--gold)">📍 entrega alternativa</span>':c.cidade||'';})()}${endVenda(v).ref?' · '+endVenda(v).ref:''}</div>
+        <div class="agdetail">
+          <div style="color:var(--muted);font-size:12.5px">📍 ${endVenda(v).end||'sem endereço'}${endVenda(v).alt?' <span style="color:var(--gold);font-weight:600">(alternativo)</span>':''}${c.tel?' · 📞 '+c.tel:''}</div>
+          ${v.obs?`<div style="color:#8A5A00;background:var(--gold-soft);font-size:12.5px;padding:6px 9px;border-radius:7px;margin-top:6px">📝 ${v.obs}</div>`:''}
+          <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${v.itens.map(i=>i.cat==='cilindro'?`<span class="chip">${i.qtd}× cilindro</span>`:`<span class="chip">${i.qtd}× ${i.tam}L</span>`).join('')||'<span class="chip">sem barril</span>'}${equipChips(v)}${chsList.length?chsList.map(x=>`<span class="chip tag">🍺 ${x.etiqueta} · ${x.modelo}</span>`).join(' '):v.chopeiraModelo?`<span class="chip tag">🍺 ${v.chopeiraModelo}</span> <button class="btn ghost sm" onclick="event.stopPropagation();definirChopeira(${v.id})">Definir unidade</button>`:''}</div>
+          <div style="margin-top:8px"><button class="btn primary sm" onclick="event.stopPropagation();openRecolhimento(${v.id})">Marcar instalada ✓</button> <button class="btn ghost sm" onclick="event.stopPropagation();openAgendarRecolhe(${v.id})">Agendar recolhimento</button></div>
+        </div>
+      </div></div>`;};
+  const linhaRecolher=(v)=>{const c=cliente(v.clienteId)||{};
+    const oque=emCampoItens(v).map(g=>g.cat==='cilindro'?g.qtd+'× cilindro':g.qtd+'× '+g.tam+'L').join(' · ');
+    const chs=v.chopeiraIds.map(id=>DB.chopeiras.find(x=>x.id===id)).filter(c=>c&&c.status==='campo'&&c.vendaId===v.id).map(x=>x.etiqueta);
+    return `<div class="agrow${ab}" onclick="this.classList.toggle('open')">
+      <div class="agtime"><span class="agbadge rec">◂ recolher</span><div class="mono" style="margin-top:3px;font-size:14px;font-weight:600;color:#5B3E8A">${v.horaRecolhe||'--:--'}</div></div>
+      <div class="agmain">
+        <div class="agtitle">${c.nome||'—'}</div>
+        <div class="agsub">${oque}${chs.length?' · chopeira '+chs.join(', '):''}</div>
+        <div class="agdetail">
+          <div style="color:var(--muted);font-size:12.5px">📍 ${c.endereco||'sem endereço'}${c.tel?' · 📞 '+c.tel:''}</div>
+          <div style="margin-top:8px"><button class="btn primary sm" onclick="event.stopPropagation();openRecolhimento(${v.id})">Recolher</button> <button class="btn ghost sm" onclick="event.stopPropagation();openRepor(${v.id})">Repor</button> <button class="btn ghost sm" onclick="event.stopPropagation();openAgendarRecolhe(${v.id})">Remarcar</button></div>
+        </div>
+      </div></div>`;};
+
+  let blocos='';
+  // aviso explícito quando hoje não tem nada agendado (dá paz ao operador)
+  const hojeTemEvento=(porDia[hojeIso]||[]).length>0;
+  const avisoHoje=(!hojeTemEvento&&(F==='tudo'||F==='hoje')&&semanaDia==='todos')
+    ? `<div class="panel" style="background:var(--gold-soft);border-color:#E6D2A8"><div style="padding:18px 20px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">☕</span><div><div style="font-weight:600">Nenhuma atividade agendada para hoje</div><div style="font-size:12.5px;color:var(--muted)">${diaSemana(hojeIso)}, ${br(hojeIso)} — sem instalações nem recolhimentos. ${dias.length?'As próximas estão logo abaixo.':''}</div></div></div></div>`
+    : '';
+  if(!dias.length){blocos=avisoHoje||`<div class="panel"><div class="empty"><b>Nada aqui</b>${F==='tudo'?'Instalações e recolhimentos agendados aparecem aqui por dia.':'Nenhum item nesse filtro.'}</div></div>`;}
+  else {blocos=avisoHoje;dias.forEach(dia=>{
+    const lista=porDia[dia].sort((a,b)=>(a.hora||'99').localeCompare(b.hora||'99'));
+    const ehHoje=dia===hojeIso;
+    const nInst=lista.filter(e=>e.tipo==='instalar').length,nRec=lista.filter(e=>e.tipo==='recolher').length;
+    const tag=[nInst?nInst+' instalar':'',nRec?nRec+' recolher':''].filter(Boolean).join(' · ');
+    const linhas=lista.map(e=>e.tipo==='instalar'?linhaInstalar(e.v):linhaRecolher(e.v)).join('');
+    blocos+=`<div class="panel"><h2${ehHoje?' style="background:var(--gold-soft)"':''}>${ehHoje?'Hoje · ':''}${br(dia)} <span style="font-weight:400;color:var(--muted)">${diaSemana(dia)}</span> <span class="tag">${tag}</span></h2>${linhas}</div>`;
+  });}
+
+  // seletor de dia (chips)
+  const diaChip=(val,lab)=>`<button class="btn ${semanaDia===val?'primary':'ghost'} sm" onclick="semanaDia='${val}';render()">${lab}</button>`;
+  // chips de dia só fazem sentido quando a tela é organizada por dia (tudo / instalar / unidade)
+  const usaDias=(F==='tudo'||F==='instalar'||F==='unidade');
+  const seletor=usaDias?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px">${diaChip('todos','Semana toda')}${diasTodos.map(d=>diaChip(d,(d===hojeIso?'Hoje · ':'')+br(d).slice(0,5)+' '+diaSemana(d).slice(0,3))).join('')}</div>`:'';
+
+  const bannerTxt={instalar:'só as instalações a fazer',hoje:'só os eventos de hoje',unidade:'só as instalações com etiqueta pendente'}[F];
+  view.innerHTML=headHTML('Logística','Semana de trabalho','O que instalar e o que recolher, por dia e por hora. Os cards no topo filtram; o filtro de dia se combina por cima. Hoje fica no topo.','')+resumo+
+    (bannerTxt?`<div class="note" style="border-left-color:var(--gold);margin-bottom:14px">Mostrando <b>${bannerTxt}</b>. Toque no card de novo para ver a semana completa.</div>`:'')+
+    seletor+blocos;
+}
+
+function renderPosicao(){
+  const ab=vendasAbertas();
+  const byC={};
+  ab.forEach(v=>{const o=byC[v.clienteId]=byC[v.clienteId]||{itens:[],dias:0,vendas:[]};o.vendas.push(v);
+    emCampoItens(v).forEach(i=>{o.itens.push(i.cat==='cilindro'?`${i.qtd}× cilindro`:`${i.qtd}× ${i.tam}L`);});
+    o.dias=Math.max(o.dias,days(v.dataEntrega,today()));});
+  chCampo().forEach(c=>{const o=byC[c.clienteId]=byC[c.clienteId]||{itens:[],dias:0,vendas:[]};o.itens.push('Chopeira '+c.etiqueta);o.dias=Math.max(o.dias,days(c.desde,today()));o.chop=true;});
+  const ids=Object.keys(byC);
+  const maisVelho=ids.length?Math.max(...ids.map(i=>byC[i].dias)):0;
+  let rows='';
+  if(!ids.length)rows=`<tr><td colspan="3"><div class="empty"><b>Nada em campo</b>Registre uma venda para ver o que saiu aparecer aqui.</div></td></tr>`;
+  else ids.sort((a,b)=>byC[b].dias-byC[a].dias).forEach(cid=>{const o=byC[cid];
+    rows+=`<tr class="row"><td><div style="font-weight:600">${clienteNome(+cid)}</div><div class="chipset" style="margin-top:6px">${o.itens.map(x=>`<span class="chip ${x.indexOf('Chopeira')===0?'tag':''}">${x}</span>`).join('')}</div></td>
+      <td><div class="age"><span class="dot" style="background:${ageColor(o.dias)}"></span><span class="d" style="color:${ageColor(o.dias)}">${o.dias} ${o.dias===1?'dia':'dias'}</span></div></td>
+      <td style="text-align:right">${o.vendas.length?`<button class="btn ghost sm" onclick="openRecolhimento(${o.vendas[0].id})">Recolher venda</button>`:''}</td></tr>`;});
+  view.innerHTML=headHTML('Tempo real','Posição em campo','As vendas em aberto — o que está fora da fábrica, com quem, e há quantos dias. A cor envelhece do verde ao ferrugem conforme o vasilhame demora a voltar.',
+    '')+
+    `<div class="stats">
+      <div class="stat"><div class="k">Vendas em campo</div><div class="v mono">${ab.length}</div><div class="sub">aguardando recolhimento</div></div>
+      <div class="stat"><div class="k">Barris em campo</div><div class="v mono">${barrisEmCampo()}</div><div class="sub">entregues, não recolhidos</div></div>
+      <div class="stat"><div class="k">Chopeiras em campo</div><div class="v mono">${chCampo().length}<small>/${DB.chopeiras.length}</small></div><div class="sub">do parque</div></div>
+      <div class="stat"><div class="k">Mais antigo parado</div><div class="v" style="color:${ageColor(maisVelho)}">${maisVelho}<small> dias</small></div><div class="sub">venda mais antiga em aberto</div></div>
+    </div>
+    <div class="panel"><h2>O que está com cada cliente <span class="tag">vendas em aberto, mais antigas primeiro</span></h2>
+      <table><thead><tr><th>Cliente / itens em campo</th><th>Há</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+let vendaFiltro='aberto';let vendaOrdem='critico'; // critico | asc | desc
+function vendaCritica(v){
+  // crítico = vasilhame parado +20d OU pagamento vencido
+  const parado=v.status==='aberta'&&days(v.dataEntrega,today())>20;
+  return parado||vencido(v);
+}
+function renderVendas(){
+  let vs=DB.vendas.slice();
+  // ordenação: 'critico' = mais antigo em campo / mais urgente no topo
+  if(vendaOrdem==='critico'){
+    vs.sort((a,b)=>{
+      const da=a.status==='aberta'?days(a.dataEntrega,today()):-1;
+      const db=b.status==='aberta'?days(b.dataEntrega,today()):-1;
+      if(da!==db)return db-da; // mais dias em campo primeiro
+      return new Date(b.dataEntrega)-new Date(a.dataEntrega);
+    });
+  }else{
+    const dir=vendaOrdem==='asc'?1:-1;
+    vs.sort((a,b)=>dir*(new Date(a.dataEntrega)-new Date(b.dataEntrega)));
+  }
+  if(vendaFiltro==='aberto')vs=vs.filter(v=>v.status==='aberta'||!v.pago);
+  else if(vendaFiltro==='concluidas')vs=vs.filter(v=>v.status==='fechada'&&v.pago);
+  else if(vendaFiltro==='criticos')vs=vs.filter(vendaCritica);
+  const total=DB.vendas.length;
+  const nAberto=DB.vendas.filter(v=>v.status==='aberta'||!v.pago).length;
+  const nCriticos=DB.vendas.filter(vendaCritica).length;
+  const tagVas=v=>v.status==='aberta'
+    ? `<span class="chip" style="background:var(--gold-soft);border-color:#E6D2A8;color:#8A5A00">📍 em campo</span>`
+    : `<span class="chip" style="background:#E8F2EA;border-color:#BcDcC4;color:#2C6B3F">✓ recolhido</span>`;
+  const tagPag=v=>v.pago
+    ? `<span class="chip" style="background:#E8F2EA;border-color:#BcDcC4;color:#2C6B3F">✓ pago</span>`
+    : vencido(v)
+      ? `<span class="chip" style="background:var(--rust-soft);border-color:#E0A892;color:#8A3415;font-weight:600">⚠ vencido</span>`
+      : `<span class="chip" style="background:#FBF4E6;border-color:#E6D2A8;color:#8A5A00">a receber</span>`;
+  const rows=vs.map(v=>{
+    const dEm=v.status==='aberta'?days(v.dataEntrega,today()):null;
+    const val=valorVenda(v);
+    const crit=vendaCritica(v);
+    return `<tr class="row" style="${crit?'background:#FBEAE2;box-shadow:inset 4px 0 0 var(--rust)':''}">
+      <td><div style="font-weight:600">${clienteNome(v.clienteId)}${crit?' <span style="color:var(--rust);font-size:11px">⚠ crítico</span>':''}</div><div class="chipset" style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px">${itensChips(v)}${chopeiraVendaChip(v)}</div></td>
+      <td style="white-space:nowrap;min-width:118px">${tagVas(v)}</td>
+      <td style="white-space:nowrap;min-width:118px">${tagPag(v)}</td>
+      <td class="mono" style="white-space:nowrap">${br(v.dataEntrega)}${v.horaEntrega?' <span style="color:var(--gold);font-weight:600">'+v.horaEntrega+'</span>':''}</td>
+      <td class="mono" style="white-space:nowrap">${v.status==='fechada'?br(v.dataRecolhimento):`<span style="color:${ageColor(dEm)};font-weight:${dEm>20?'700':'400'}">há ${dEm}d</span>`}</td>
+      <td class="num" style="font-weight:600">${fmtR(val)}</td>
+      <td style="text-align:right;white-space:nowrap">${v.status==='aberta'?`<button class="btn ghost sm" onclick="openRepor(${v.id})">Repor</button> <button class="btn primary sm" onclick="openRecolhimento(${v.id})">Recolher</button> `:''}${!v.pago?`<button class="btn gold sm" onclick="openPagamento(${v.id})">Receber</button>`:''}</td></tr>`;
+  }).join('')||`<tr><td colspan="7"><div class="empty"><b>${vendaFiltro==='criticos'?'Nada crítico 🎉':'Nenhuma venda'}</b>${vendaFiltro==='criticos'?'Nenhum barril parado +20 dias nem pagamento vencido.':'Crie a primeira venda.'}</div></td></tr>`;
+  const ordemLabel={critico:'Mais urgente',asc:'Entrega ▲',desc:'Entrega ▼'}[vendaOrdem];
+  view.innerHTML=headHTML('A base','Vendas','Cada venda é o registro completo: o que foi entregue, quando, o que voltou lacrado no recolhimento, o que foi consumido e o valor. É a unidade que amarra tudo.',
+    `<button class="btn gold" onclick="openVenda()">+ Nova venda</button>`)+
+    `<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="k">Em campo (previsto)</div><div class="v mono" style="font-size:22px">${fmtR(receitaPrevista())}</div><div class="sub">vendas abertas, valor estimado</div></div>
+      <div class="stat"><div class="k">Receita acertada</div><div class="v mono" style="font-size:22px;color:var(--green-ok)">${fmtR(receitaRealizada())}</div><div class="sub">vendas já recolhidas</div></div>
+      <div class="stat" style="${nCriticos&&vendaFiltro==='criticos'?'outline:2px solid var(--rust);outline-offset:-1px':''}"><div class="k">Críticos</div><div class="v mono" style="color:${nCriticos?'var(--rust)':'var(--green-ok)'}">${nCriticos}</div><div class="sub">parado +20d ou vencido</div></div>
+    </div>
+    <div class="panel"><h2>Vendas <span style="display:flex;align-items:center;gap:8px;font-weight:400;color:var(--muted);font-size:13px">Mostrar:<select onchange="vendaFiltro=this.value;render()" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-weight:600;color:var(--ink)"><option value="aberto" ${vendaFiltro==='aberto'?'selected':''}>Em aberto — falta recolher ou receber (${nAberto})</option><option value="criticos" ${vendaFiltro==='criticos'?'selected':''}>Atrasados / Críticos (${nCriticos})</option><option value="concluidas" ${vendaFiltro==='concluidas'?'selected':''}>Concluídas — recolhidas e pagas</option><option value="todas" ${vendaFiltro==='todas'?'selected':''}>Todas (${total})</option></select></span></h2>
+      <table><thead><tr><th>Cliente / itens</th><th>Vasilhame</th><th>Pagamento</th><th style="cursor:pointer;user-select:none" onclick="vendaOrdem=(vendaOrdem==='critico'?'asc':vendaOrdem==='asc'?'desc':'critico');render()" title="Clique para mudar a ordenação">${ordemLabel} <span style="color:var(--gold)">⇅</span></th><th>Recolhimento</th><th class="num">Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="note">Ordenado por <b>mais urgente</b> (parado há mais tempo no topo). As tags mostram o estado do <b>vasilhame</b> e do <b>pagamento</b> de relance. <b>Crítico</b> = barril parado +20 dias ou pagamento vencido.</div>`;
+}
+
+let pendFoco='tudo'; // tudo | recolher | receber | vencidos
+function renderPendencias(){
+  const recolher=aRecolherLista(), receber=aReceberLista();
+  const totalRec=totalAReceber();
+  const vencidos=receber.filter(vencido);
+  const f=pendFoco;
+  // agrupa A recolher por cliente (tudo que está com cada um)
+  const porCliente={};
+  recolher.forEach(v=>{(porCliente[v.clienteId]=porCliente[v.clienteId]||[]).push(v);});
+  const clientesRec=Object.keys(porCliente).sort((a,b)=>{
+    const da=Math.max(...porCliente[a].map(v=>days(v.dataEntrega,today())));
+    const db=Math.max(...porCliente[b].map(v=>days(v.dataEntrega,today())));
+    return db-da; // mais antigo primeiro
+  });
+  const recRows=clientesRec.map(cid=>{
+    const vendas=porCliente[cid];
+    const diaMax=Math.max(...vendas.map(v=>days(v.dataEntrega,today())));
+    const chips=vendas.map(v=>emCampoChipsCompleto(v)).join(' ');
+    const botoes=vendas.length===1
+      ? `<button class="btn primary sm" onclick="openRecolhimento(${vendas[0].id})">Recolher</button>`
+      : vendas.map(v=>`<button class="btn primary sm" onclick="openRecolhimento(${v.id})" style="margin-bottom:4px">Recolher ${br(v.dataEntrega)}</button>`).join('<br>');
+    return `<tr class="row"><td><div style="font-weight:600">${clienteNome(+cid)}</div><div class="chipset" style="margin-top:5px">${chips||'<span style="color:var(--muted);font-size:12px">sem itens em campo</span>'}</div>${vendas.length>1?`<div style="font-size:11.5px;color:var(--muted);margin-top:4px">${vendas.length} vendas em aberto</div>`:''}</td>
+      <td class="mono">${vendas.map(v=>br(v.dataEntrega)).join('<br>')}</td>
+      <td><div class="age"><span class="dot" style="background:${ageColor(diaMax)}"></span><span class="d" style="color:${ageColor(diaMax)}">${diaMax}d em campo</span></div></td>
+      <td style="text-align:right">${botoes}</td></tr>`;
+  }).join('')||`<tr><td colspan="4"><div class="empty"><b>Nada a recolher</b>Nenhum equipamento em campo.</div></td></tr>`;
+  const listaReceber=f==='vencidos'?vencidos:receber;
+  // agrupa "a receber" por cliente, para permitir quitar todas as pendências de uma vez
+  const porCliReceber={};
+  listaReceber.forEach(v=>{(porCliReceber[v.clienteId]=porCliReceber[v.clienteId]||[]).push(v);});
+  const clientesReceber=Object.keys(porCliReceber).sort((a,b)=>{
+    // prioriza quem tem algo recolhido-e-devendo (cobrança), depois por valor
+    const ra=porCliReceber[a].some(v=>v.status!=='aberta'),rb=porCliReceber[b].some(v=>v.status!=='aberta');
+    if(ra!==rb)return ra?-1:1;
+    return porCliReceber[b].reduce((s,v)=>s+valorVenda(v),0)-porCliReceber[a].reduce((s,v)=>s+valorVenda(v),0);
+  });
+  const recvRows=clientesReceber.map(cid=>{
+    const vendas=porCliReceber[cid];
+    const recolhidos=vendas.filter(v=>v.status!=='aberta').sort((a,b)=>new Date(a.vencimento||a.dataEntrega)-new Date(b.vencimento||b.dataEntrega));
+    const emCampo=vendas.filter(v=>v.status==='aberta').sort((a,b)=>new Date(a.vencimento||a.dataEntrega)-new Date(b.vencimento||b.dataEntrega));
+    const totalCli=vendas.reduce((s,v)=>s+valorVenda(v),0);
+    const totalCobrar=recolhidos.reduce((s,v)=>s+valorVenda(v),0);
+    const mista=recolhidos.length>0&&emCampo.length>0;
+    const linhaVenda=(v,grupo)=>{
+      const venc=v.vencimento;const atras=vencido(v);
+      const cobrar=grupo==='cobrar';
+      return `<tr class="row" style="${cobrar?'background:#FBF1EC':''}">
+        <td style="padding-left:28px"><span style="color:var(--muted)">└ </span><span style="font-size:12.5px">venda ${br(v.dataEntrega)}</span></td>
+        <td class="mono">${venc?`<span style="color:${atras?'var(--rust)':'inherit'};font-weight:${atras?'600':'400'}">${br(venc)}${atras?' ⚠':''}</span>`:'<span style="color:var(--muted)">sem prazo</span>'}</td>
+        <td class="num" style="font-weight:600">${fmtR(valorVenda(v))}</td>
+        <td style="text-align:right"><button class="btn ${cobrar?'gold':'ghost'} sm" onclick="openPagamento(${v.id})">Pagar</button></td></tr>`;
+    };
+    // subcabeçalho de grupo dentro do card
+    const subCab=(txt,cor,borda)=>`<tr><td colspan="4" style="padding:8px 14px 5px 24px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:${cor};${borda?'border-top:2px solid var(--line)':''}">${txt}</td></tr>`;
+    // cabeçalho do cliente: total + botões conforme o que tem
+    let botoes='';
+    if(mista){
+      botoes=`<button class="btn primary sm" onclick="quitarCliente(${cid},'recolhidos')">Quitar recolhidos</button> <button class="btn ghost sm" onclick="quitarCliente(${cid},'tudo')" style="margin-left:4px">Quitar tudo</button>`;
+    }else if(recolhidos.length>1){
+      botoes=`<button class="btn primary sm" onclick="quitarCliente(${cid},'tudo')">Quitar todas</button>`;
+    }else if(emCampo.length>1){
+      botoes=`<button class="btn ghost sm" onclick="quitarCliente(${cid},'tudo')">Quitar todas</button>`;
+    }
+    const cabCli=`<tr style="background:#FAF8F3"><td style="font-weight:700">${clienteNome(+cid)}${vendas.length>1?` <span class="tag">${vendas.length} pendências</span>`:''}</td><td></td><td class="num" style="font-weight:700">${fmtR(totalCli)}</td><td style="text-align:right">${botoes}</td></tr>`;
+    // monta o corpo: se mista, dois blocos com subcabeçalho; senão, lista simples
+    let corpo='';
+    if(mista){
+      corpo+=subCab(`Cobrar agora — recolhido · ${fmtR(totalCobrar)}`,'#8A3415',false);
+      corpo+=recolhidos.map(v=>linhaVenda(v,'cobrar')).join('');
+      corpo+=subCab('Acompanhar — ainda em campo','var(--muted)',true);
+      corpo+=emCampo.map(v=>linhaVenda(v,'campo')).join('');
+    }else{
+      const grupo=recolhidos.length?'cobrar':'campo';
+      const lista=recolhidos.length?recolhidos:emCampo;
+      // rótulo de status quando não é mista (uma linha só ou várias do mesmo tipo)
+      if(vendas.length>1)corpo+=subCab(recolhidos.length?'Cobrar agora — recolhido':'Acompanhar — ainda em campo',recolhidos.length?'#8A3415':'var(--muted)',false);
+      corpo+=lista.map(v=>linhaVenda(v,grupo)).join('');
+    }
+    return cabCli+corpo;
+  }).join('')||`<tr><td colspan="4"><div class="empty"><b>${f==='vencidos'?'Nenhum vencido':'Nada a receber'}</b>${f==='vencidos'?'Nenhuma venda com prazo estourado.':'Todas as vendas estão pagas.'}</div></td></tr>`;
+  // cards clicáveis (3) + monitoramento (2)
+  const cardF=(val,titulo,valorHtml,sub,cor)=>{const on=f===val;return `<div class="stat" style="cursor:pointer;${on?'outline:2px solid '+(cor||'var(--gold)')+';outline-offset:-1px':''}" onclick="pendFoco=(pendFoco==='${val}'?'tudo':'${val}');render()"><div class="k">${titulo}</div><div class="v mono"${cor?` style="color:${cor}"`:''}>${valorHtml}</div><div class="sub">${on?'filtrando ✓':sub}</div></div>`;};
+  const cardN=(titulo,valorHtml,sub)=>`<div class="stat"><div class="k">${titulo}</div><div class="v mono">${valorHtml}</div><div class="sub">${sub}</div></div>`;
+  // visibilidade das listas conforme o foco
+  const mostraRecolher=(f==='tudo'||f==='recolher');
+  const mostraReceber=(f==='tudo'||f==='receber'||f==='vencidos');
+  const blocoRecolher=`<div class="panel"><h2>A recolher <span class="tag">vasilhame ainda em campo</span></h2><table><thead><tr><th>Cliente / o que pegar</th><th>Entregue</th><th>Há</th><th></th></tr></thead><tbody>${recRows}</tbody></table></div>`;
+  const blocoReceber=`<div class="panel"><h2>A receber <span class="tag">${f==='vencidos'?'só vencidos':'por vencimento — vencidos no topo'}</span></h2><table><thead><tr><th>Cliente</th><th>Vencimento</th><th class="num">Valor</th><th></th></tr></thead><tbody>${recvRows}</tbody></table></div>`;
+  const manoCampo=vendasAbertas().reduce((s,v)=>s+equipEmCampoVenda(v).filter(g=>g.classe==='manometro').reduce((a,g)=>a+g.qtd,0),0);
+  const totalEmCampo=barrisEmCampo()+chCampo().length+cilCampo().length+manoCampo;
+  view.innerHTML=headHTML('Pendências','Em campo e a receber','O que está fora pra voltar e o dinheiro que ainda tem que entrar. Toque num card para isolar uma lista. São pendências independentes: pode estar pago com o barril em campo, ou recolhido e devendo.','')+
+    `<div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      ${cardF('recolher','A recolher',recolher.length,'vasilhame em campo')}
+      ${cardF('receber','A receber',fmtR(totalRec),receber.length+' em aberto','var(--gold)')}
+      ${cardF('vencidos','Vencidos',fmtR(vencidos.reduce((s,v)=>s+valorVenda(v),0)),vencidos.length+' com prazo estourado',vencidos.length?'var(--rust)':'var(--ink)')}
+      ${cardN('Equipamentos em campo',totalEmCampo,`${barrisEmCampo()} barris · ${chCampo().length} chop · ${cilCampo().length} cil · ${manoCampo} manôm`)}
+    </div>
+    ${mostraRecolher?blocoRecolher:''}
+    ${mostraReceber?blocoReceber:''}`;
+}
+
+function renderReservas(){
+  const rs=reservasFuturas();
+  const rows=rs.map(r=>{const dias=days(today(),r.dataEvento);
+    const curto=dias<=7; // foco principal de estoque
+    const chips=r.itens.map(i=>`<span class="chip">${i.qtd}× ${i.tam}L ${prod(i.prodId)?prod(i.prodId).estilo:''}</span>`).join(' ');
+    const chs=r.chopeiraIds.map(id=>{const c=DB.chopeiras.find(x=>x.id===id);return c?`<span class="chip tag">${c.etiqueta}</span>`:'';}).join(' ');
+    return `<tr class="row" style="${curto?'background:#FCF3EE;box-shadow:inset 4px 0 0 var(--gold)':''}"><td><div style="font-weight:600">${clienteNome(r.clienteId)}${curto?' <span class="chip" style="background:var(--gold-soft);border-color:#E6D2A8;color:#8A5A00;font-weight:600">⏳ em breve</span>':''}</div>${r.obs?`<div style="color:var(--muted);font-size:12px;margin-top:2px">${r.obs}</div>`:''}</td>
+      <td class="mono">${br(r.dataEvento)}<div style="color:${curto?'var(--gold)':'var(--muted)'};font-size:11.5px;font-weight:${curto?'600':'400'}">em ${dias} dia${dias===1?'':'s'}</div></td>
+      <td><div class="chipset">${chips}</div><div style="color:var(--muted);font-size:11.5px;margin-top:3px">${litrosReserva(r)}L de chopp</div></td>
+      <td>${chs||'—'}</td>
+      <td style="text-align:right;white-space:nowrap"><button class="btn primary sm" onclick="converterReserva(${r.id})">Virar venda</button><span style="display:inline-block;width:14px"></span><button class="btn ghost sm" style="color:var(--muted);border-color:var(--line)" onclick="confirmCancelarReserva(${r.id})">Cancelar</button></td></tr>`;
+  }).join('')||`<tr><td colspan="5"><div class="empty"><b>Sem reservas futuras</b>Reserve um evento e ele aparece aqui, sem tirar a chopeira de uso até a data.</div></td></tr>`;
+  const totalLitros=rs.reduce((s,r)=>s+litrosReserva(r),0);
+  view.innerHTML=headHTML('Agenda futura','Reservas','Eventos já reservados para datas futuras. As chopeiras reservadas continuam em uso normal até a data — a reserva é um compromisso no calendário, não um bloqueio agora.',
+    `<button class="btn gold" onclick="openReserva()">+ Nova reserva</button>`)+
+    `<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="k">Reservas futuras</div><div class="v mono">${rs.length}</div></div>
+      <div class="stat"><div class="k">Chopp reservado</div><div class="v mono">${totalLitros}<small> L</small></div><div class="sub">já comprometido em eventos</div></div>
+      <div class="stat"><div class="k">Chopeiras comprometidas</div><div class="v mono">${rs.reduce((s,r)=>s+r.chopeiraIds.length,0)}</div><div class="sub">para datas futuras</div></div>
+    </div>
+    <div class="panel"><h2>Próximos eventos reservados</h2><table><thead><tr><th>Cliente</th><th>Data</th><th>Chopp reservado</th><th>Chopeiras</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="note">Quando o evento se aproximar, use <b>Virar venda</b> para converter a reserva numa venda real (entrega). A chopeira reservada aparece marcada na aba Chopeiras, mas segue disponível para uso até lá.</div>`;
+}
+
+let pedidoMargem=20; // % de margem sobre o agendado, para o walk-in não agendado
+let pedidoDias=7;     // janela de planejamento em dias
+function renderPedidoFabrica(){
+  const agendado=agendadoPorTam(pedidoDias); // barris por tamanho
+  // quantas vendas em campo têm barril de cada tamanho (cada recolhimento vira vazio)
+  const vendasComBarrilEmCampo=t=>vendasAbertas().filter(v=>emCampoItens(v).some(g=>g.cat==='barril'&&g.tam===t)).length;
+  const barrisEmCampoTam=t=>vendasAbertas().reduce((s,v)=>s+emCampoItens(v).filter(g=>g.cat==='barril'&&g.tam===t).reduce((a,g)=>a+g.qtd,0),0);
+  const linhas=TAMANHOS.map(t=>{
+    const est=estoqueTam(t);
+    const ag=agendado[t]||0;
+    const comMargem=Math.ceil(ag*(1+pedidoMargem/100));  // necessidade
+    const disp=Math.max(0,est.disponivel);
+    const vazios=Math.max(0,est.vazio);
+    const faltam=Math.max(0,comMargem-disp);             // o que preciso além do estoque
+    const podeTrocar=Math.min(faltam,vazios);             // o que dá pra pedir (limite 1:1)
+    // FALTARÁ = necessidade − (estoque + o que consigo trocar) = o que vou DEVER ao cliente
+    const faltara=Math.max(0,comMargem-(disp+podeTrocar));
+    // causa: se ainda há vazios não usados, o gargalo é estoque; senão é vazio
+    const sobramVazios=vazios>podeTrocar;
+    const causa=faltara>0?(sobramVazios?'estoque':'vazio'):null;
+    return {t,ag,comMargem,disp,vazios,podeTrocar,faltara,causa,emCampo:barrisEmCampoTam(t),nVendas:vendasComBarrilEmCampo(t)};
+  }).filter(r=>r.ag>0||r.comMargem>0||r.disp>0||r.vazios>0);
+
+  const algoFaltara=linhas.some(r=>r.faltara>0);
+  const totalPedir=linhas.reduce((s,r)=>s+r.podeTrocar,0);
+  const totalFaltara=linhas.reduce((s,r)=>s+r.faltara,0);
+
+  const rows=linhas.map(r=>{
+    let faltaCel;
+    if(r.faltara===0)faltaCel='<span style="color:var(--green-ok)">coberto</span>';
+    else if(r.causa==='vazio')faltaCel=`<span style="color:var(--rust);font-weight:600">${r.faltara} ⚠</span><div style="font-size:10.5px;color:var(--muted)">faltam vazios</div>`;
+    else faltaCel=`<span style="color:var(--rust);font-weight:600">${r.faltara} ⚠</span><div style="font-size:10.5px;color:var(--muted)">falta estoque</div>`;
+    return `<tr class="row">
+      <td style="font-weight:600">${r.t}L</td>
+      <td class="num">${r.ag}</td>
+      <td class="num" style="color:var(--muted)">${r.comMargem}</td>
+      <td class="num" style="color:var(--green-ok)">${r.disp}</td>
+      <td class="num" style="color:#6B7280">${r.vazios}</td>
+      <td class="num" style="font-weight:700;color:var(--gold)">${r.podeTrocar}</td>
+      <td class="num">${faltaCel}</td>
+    </tr>`;}).join('')||`<tr><td colspan="7"><div class="empty"><b>Nada agendado na janela</b>Agende instalações na Semana ou reservas para o pedido aparecer aqui.</div></td></tr>`;
+
+  // sugestões de recolhimento: para os tamanhos que faltam por falta de vazio, recolher gera vazio
+  const sugestoes=linhas.filter(r=>r.faltara>0&&r.causa==='vazio'&&r.nVendas>0).map(r=>{
+    const precisa=Math.min(r.faltara,r.nVendas); // cada venda recolhida ≈ 1+ vazios
+    return `<li style="margin-bottom:6px">No <b>${r.t}L</b> faltam <b style="color:var(--rust)">${r.faltara}</b> e seus vazios acabaram. Você tem <b>${r.nVendas} venda${r.nVendas>1?'s':''}</b> com ${r.t}L em campo — recolher destrava vazios pra trocar. <a onclick="setView('pendencias')" style="color:var(--gold);cursor:pointer;font-weight:600">Ver o que recolher →</a></li>`;
+  }).join('');
+  const faltaPorEstoque=linhas.filter(r=>r.faltara>0&&r.causa==='estoque');
+
+  view.innerHTML=headHTML('Abastecimento semanal','Pedido à fábrica','O pedido acompanha o que está agendado na Semana (instalações + reservas), por tamanho. A fábrica troca vazio por cheio 1:1 — então o "Faltará" mostra o que você ainda deverá ao cliente depois de usar estoque e trocar todos os vazios.','')+
+    `<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="k">A pedir (trocável)</div><div class="v mono" style="color:var(--gold)">${totalPedir}<small> barris</small></div><div class="sub">o que dá pra trocar agora</div></div>
+      <div class="stat" style="${algoFaltara?'outline:2px solid var(--rust);outline-offset:-1px':''}"><div class="k">Faltará ao cliente</div><div class="v mono" style="color:${algoFaltara?'var(--rust)':'var(--green-ok)'}">${totalFaltara}<small> barris</small></div><div class="sub">${algoFaltara?'demanda que não será atendida':'tudo coberto'}</div></div>
+      <div class="stat"><div class="k">Janela</div><div class="v mono">${pedidoDias}<small> dias</small></div><div class="sub">instalações e reservas</div></div>
+    </div>
+    <div class="panel">
+      <h2>Configuração do cálculo</h2>
+      <div style="padding:14px 20px;display:flex;gap:24px;flex-wrap:wrap;align-items:end">
+        <div class="field" style="margin:0"><label>Janela (dias)</label><select onchange="pedidoDias=+this.value;render()" style="padding:8px;border:1px solid var(--line);border-radius:8px">${[7,14,21,30].map(d=>`<option value="${d}" ${pedidoDias===d?'selected':''}>${d} dias</option>`).join('')}</select></div>
+        <div class="field" style="margin:0"><label>Margem p/ não agendado (%)</label><input type="number" min="0" max="100" value="${pedidoMargem}" onchange="pedidoMargem=Math.max(0,+this.value||0);render()" style="padding:8px;border:1px solid var(--line);border-radius:8px;width:90px"></div>
+        <div style="font-size:12.5px;color:var(--muted);flex:1;min-width:200px">A margem cobre as vendas de última hora que você não agenda.</div>
+      </div>
+    </div>
+    ${algoFaltara?`<div class="note" style="border-left-color:var(--rust);margin-bottom:16px;color:#8A3415"><b>Vão faltar ${totalFaltara} barril(s) pro mercado.</b> Mesmo usando todo o estoque e trocando todos os vazios possíveis, a demanda agendada supera o que você consegue ter. Veja a causa por tamanho na coluna "Faltará".</div>`:''}
+    ${sugestoes?`<div class="panel" style="border-color:#E0A892"><h2 style="color:#8A3415">Como destravar — recolha pra gerar vazios</h2><ul style="margin:0;padding:14px 20px 18px 38px;font-size:13px">${sugestoes}</ul></div>`:''}
+    ${faltaPorEstoque.length?`<div class="note" style="border-left-color:var(--gold);margin-bottom:16px">Nos tamanhos ${faltaPorEstoque.map(r=>r.t+'L').join(', ')}, a falta é de <b>estoque</b>, não de vazio — você ainda tem vazios sobrando, mas a necessidade supera tudo que dá pra ter. Aqui só resolve comprando mais vasilhame ou reduzindo o agendado.</div>`:''}
+    <div class="panel"><h2>Pedido por tamanho <span class="tag">agendado + ${pedidoMargem}% margem</span></h2>
+      <table><thead><tr><th>Tam</th><th class="num">Agendado</th><th class="num">Necessário</th><th class="num">Tenho</th><th class="num">Vazios</th><th class="num">Pedir</th><th class="num">Faltará</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="note"><b>Necessário</b> = agendado + margem. <b>Pedir</b> = o que falta além do estoque, limitado pelos <b>vazios</b> (troca 1:1). <b style="color:var(--rust)">Faltará</b> = o que você ainda deverá ao cliente depois de usar o estoque e trocar todos os vazios — com a causa: <i>faltam vazios</i> (recolha pra destravar) ou <i>falta estoque</i> (precisa de mais vasilhame).</div>`;
+}
+
+const DEPOSITO_PADRAO='principal'; // porta aberta: hoje fixo, vira seletor quando houver +1 depósito
+let estoqueFoco='todos'; // todos | disponivel | campo | vazio (destaca a coluna)
+let estoqueMostraZerados=false;
+let estoqueInventario=false; // modo edição em lote
+const COR_EST={disponivel:'var(--green-ok)',campo:'var(--gold)',vazio:'#6B7280'}; // verde / âmbar / cinza
+function renderEstoque(){
+  const linhas=TAMANHOS.map(t=>{const e=estoqueTam(t);return{...e};});
+  const algumDado=temAbertura()||DB.vendas.some(v=>diario(v).some(m=>m.cat==='barril'));
+  const tot=linhas.reduce((a,e)=>({disponivel:a.disponivel+e.disponivel,campo:a.campo+e.campo,vazio:a.vazio+e.vazio,total:a.total+e.total}),{disponivel:0,campo:0,vazio:0,total:0});
+  const inconsist=linhas.some(e=>e.disponivel<0||e.vazio<0||e.campo<0);
+  const f=estoqueFoco;
+  // separa tamanhos com giro dos zerados (ponto 1)
+  const comGiro=linhas.filter(e=>e.total!==0||e.campo!==0||e.disponivel!==0||e.vazio!==0);
+  const zerados=linhas.filter(e=>!(e.total!==0||e.campo!==0||e.disponivel!==0||e.vazio!==0));
+  const visiveis=estoqueMostraZerados?linhas:comGiro;
+
+  const card=(estado,titulo,valor,cor,sub)=>`<div class="stat" style="cursor:pointer;${f===estado?'outline:2px solid '+cor+';outline-offset:-1px':''}" onclick="estoqueFoco=${estado==='todos'?"'todos'":"(estoqueFoco==='"+estado+"'?'todos':'"+estado+"')"};render()"><div class="k">${titulo}</div><div class="v mono" style="color:${cor}">${valor}</div><div class="sub">${sub}</div></div>`;
+
+  // destaque por coluna: a coluna do foco fica forte, as outras esmaecem (ponto 4)
+  const dim=(col)=>f!=='todos'&&f!==col?'opacity:.32':'';
+  const strong=(col)=>f===col?'font-weight:700':'';
+  // célula numérica colorida por estado (ponto 2 + 5: alinhada à direita)
+  const cel=(val,col,baseCor)=>{
+    if(estoqueInventario&&col!=='total'){
+      return `<td class="num" style="${dim(col)}"><input type="number" id="inv-${col}-${val.tam}" value="${val.v}" style="width:64px;padding:6px;border:1px solid var(--line);border-radius:7px;text-align:right;font-family:inherit"></td>`;
+    }
+    const cor=val.v<0?'var(--rust)':(val.v===0?'var(--muted)':baseCor);
+    return `<td class="num" style="color:${cor};${dim(col)};${strong(col)}">${val.v}</td>`;
+  };
+  const linhaTabela=(e)=>{const bad=e.disponivel<0||e.vazio<0||e.campo<0;
+    return `<tr class="row">
+      <td style="font-weight:600">${e.tam}L${bad?' <span style="color:var(--rust)">⚠</span>':''}</td>
+      ${cel({tam:e.tam,v:e.disponivel},'disponivel',COR_EST.disponivel)}
+      ${cel({tam:e.tam,v:e.campo},'campo',COR_EST.campo)}
+      ${cel({tam:e.tam,v:e.vazio},'vazio',COR_EST.vazio)}
+      <td class="num" style="font-weight:600;${dim('total')}">${e.total}</td>
+    </tr>`;};
+  const rowsTab=visiveis.map(linhaTabela).join('')||`<tr><td colspan="5"><div class="empty" style="padding:24px"><b>Sem barris cadastrados</b></div></td></tr>`;
+  // linha de zerados recolhida (ponto 1)
+  const linhaZerados=(!estoqueMostraZerados&&zerados.length)?`<tr><td colspan="5" style="text-align:center;padding:10px"><button class="btn ghost sm" onclick="estoqueMostraZerados=true;render()">+ ${zerados.length} tamanho${zerados.length>1?'s':''} sem estoque (${zerados.map(z=>z.tam+'L').join(', ')})</button></td></tr>`:'';
+  const linhaRecolher=(estoqueMostraZerados&&zerados.length)?`<tr><td colspan="5" style="text-align:center;padding:8px"><button class="btn ghost sm" onclick="estoqueMostraZerados=false;render()">▴ ocultar tamanhos sem estoque</button></td></tr>`:'';
+  // cabeçalho com cores e destaque
+  const th=(col,lab,cor)=>`<th class="num" style="color:${f===col?cor:'inherit'};${dim(col)};${strong(col)}">${lab}</th>`;
+  const thead=`<tr><th>Tamanho</th>${th('disponivel','Disponível',COR_EST.disponivel)}${th('campo','Em campo',COR_EST.campo)}${th('vazio','Vazios',COR_EST.vazio)}<th class="num" style="${dim('total')}">Total</th></tr>`;
+
+  // botões do topo da tabela: inventário em lote (ponto 3)
+  const acoesTabela=estoqueInventario
+    ? `<span style="display:flex;gap:8px"><button class="btn ghost sm" onclick="estoqueInventario=false;render()">Cancelar</button><button class="btn gold sm" onclick="salvarInventario()">Salvar inventário</button></span>`
+    : `<button class="btn ghost sm" onclick="estoqueInventario=true;render()">Ajustar estoque (inventário)</button>`;
+
+  view.innerHTML=headHTML('Galpão','Estoque do depósito','Quantos barris de cada tamanho você tem, e em que estado. Toque num card para destacar aquele estado. Tudo derivado das movimentações.',
+    `<span style="display:flex;gap:8px"><button class="btn ghost" onclick="openTroca()">Registrar troca da fábrica</button><button class="btn gold" onclick="openAbertura()">Cadastrar / atualizar saldo</button></span>`)+
+    `<div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      ${card('disponivel','Disponível p/ vender',tot.disponivel,COR_EST.disponivel,'cheios no depósito')}
+      ${card('campo','Em campo',tot.campo,COR_EST.campo,'com clientes')}
+      ${card('vazio','Vazios p/ troca',tot.vazio,COR_EST.vazio,'aguardando a fábrica')}
+      ${card('todos','Patrimônio total',tot.total,'var(--ink)','barris seus — ver tudo')}
+    </div>
+    ${algumDado?'':`<div class="note" style="border-left-color:var(--gold);margin-bottom:16px">Comece cadastrando seu saldo atual: quantos barris de cada tamanho você tem cheios, vazios e em campo hoje. A partir daí o sistema deriva tudo sozinho conforme você vende e recolhe.</div>`}
+    ${inconsist?`<div class="note" style="border-left-color:var(--rust);margin-bottom:16px;color:#8A3415"><b>Saldo inconsistente.</b> Algum tamanho ficou negativo — o saldo cadastrado não comporta o que as vendas dizem estar em campo. Revise no inventário ou no saldo.</div>`:''}
+    <div class="panel"><h2>Por tamanho <span style="display:flex;align-items:center;gap:10px;font-weight:400"><span class="tag">depósito principal</span>${acoesTabela}</span></h2>
+      ${estoqueInventario?`<div style="padding:0 20px 8px;font-size:12.5px;color:var(--muted)">Edite os números direto na tabela e salve. O ajuste fica registrado como inventário, sem apagar o histórico.</div>`:''}
+      <table><thead>${thead}</thead><tbody>${rowsTab}${linhaZerados}${linhaRecolher}</tbody></table></div>
+    <div class="note"><b style="color:${COR_EST.disponivel}">Disponível</b> = cheios prontos pra vender. <b style="color:${COR_EST.campo}">Em campo</b> = com clientes, precisa voltar. <b style="color:${COR_EST.vazio}">Vazios</b> = material parado esperando a troca com a fábrica. A troca conserva o total.</div>`;
+}
+async function salvarInventario(){
+  let mudou=0;
+  TAMANHOS.forEach(t=>{
+    const e=estoqueTam(t);
+    ['disponivel','campo','vazio'].forEach(col=>{
+      const inp=document.getElementById('inv-'+col+'-'+t);if(!inp)return;
+      const novo=+inp.value;const atual=e[col];
+      if(novo!==atual){const delta=novo-atual;DB.deposito.push({tipo:'ajuste',deposito:DEPOSITO_PADRAO,tam:t,estado:col,delta,motivo:'inventário',data:iso(today())});mudou++;}
+    });
+  });
+  estoqueInventario=false;await persist();showToast(mudou?mudou+' ajuste(s) de inventário salvos':'Nada alterado');render();
+}
+function equipEstoqueSecao(){
+  const grupo=(classe,lab)=>{const its=equipsClasse(classe);if(!its.length)return '';
+    const rows=its.map(e=>{const s=equipEstoque(e.id);return `<tr class="row"><td style="font-weight:600">${e.nome}</td><td class="num" style="color:var(--green-ok);font-weight:600">${s.disponivel}</td><td class="num" style="color:${s.campo?'var(--gold)':'var(--muted)'}">${s.campo}</td><td class="num" style="font-weight:600">${s.total}</td></tr>`;}).join('');
+    return `<div class="panel"><h2>${lab}</h2><table><thead><tr><th>Tipo</th><th class="num">Disponível</th><th class="num">Em campo</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;};
+  const g=grupo('cilindro','Cilindros de CO₂')+grupo('manometro','Manômetros');
+  return g?`<div style="margin:24px 0 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600">Equipamentos</div>`+g:'';
+}
+
+// --- Abertura / atualização de saldo ---
+function openAbertura(){
+  const atual={};TAMANHOS.forEach(t=>{const e=estoqueTam(t);atual[t]=e;});
+  open(`<header><h3>Cadastrar saldo do depósito</h3><p>Informe quantos barris de cada tamanho você tem <b>hoje</b>. Isso registra uma foto inicial — o sistema deriva o resto a partir das vendas.</p></header>
+  <div class="body">
+    <div style="display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:8px;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:2px"><span>Tam</span><span>Cheios</span><span>Vazios</span><span>Em campo</span></div>
+    ${TAMANHOS.map(t=>`<div style="display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:6px"><span style="font-weight:600">${t}L</span><input id="ab-c-${t}" type="number" min="0" value="0" style="padding:8px;border:1px solid var(--line);border-radius:8px"><input id="ab-v-${t}" type="number" min="0" value="0" style="padding:8px;border:1px solid var(--line);border-radius:8px"><input id="ab-k-${t}" type="number" min="0" value="0" style="padding:8px;border:1px solid var(--line);border-radius:8px"></div>`).join('')}
+    <div class="note">Se você já registra suas vendas no sistema, o "em campo" pode ficar 0 — ele será contado pelas vendas abertas. Use "em campo" aqui só para barris que já estão fora mas não têm venda lançada.</div>
+  </div>
+  <footer><span></span><button class="btn gold" onclick="saveAbertura()">Salvar saldo</button></footer>`);
+}
+async function saveAbertura(){
+  const data=iso(today());
+  TAMANHOS.forEach(t=>{
+    const c=+document.getElementById('ab-c-'+t).value||0,vz=+document.getElementById('ab-v-'+t).value||0,k=+document.getElementById('ab-k-'+t).value||0;
+    // remove abertura anterior deste tamanho (substitui a foto)
+    DB.deposito=DB.deposito.filter(m=>!(m.tipo==='abertura'&&m.tam===t));
+    if(c||vz||k)DB.deposito.push({tipo:'abertura',deposito:DEPOSITO_PADRAO,tam:t,cheio:c,vazio:vz,campo:k,data});
+  });
+  await persist();close();showToast('Saldo do depósito atualizado');render();
+}
+
+// --- Troca com a fábrica ---
+function openTroca(){
+  open(`<header><h3>Troca com a fábrica</h3><p>O dia da fábrica: você devolve vazios e recebe cheios na mesma quantidade (1:1, por tamanho).</p></header>
+  <div class="body">
+    <div class="field"><label>Data da troca</label><input id="tr-data" type="date" value="${iso(today())}"></div>
+    <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600"><span>Tam</span><span>Vazios disponíveis</span><span>Trocar (qtd)</span></div>
+    ${TAMANHOS.map(t=>{const e=estoqueTam(t);return `<div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;align-items:center;margin-bottom:6px"><span style="font-weight:600">${t}L</span><span class="mono" style="color:${e.vazio?'var(--blue)':'var(--muted)'}">${e.vazio} vazios</span><input id="tr-${t}" type="number" min="0" max="${e.vazio}" value="0" style="padding:8px;border:1px solid var(--line);border-radius:8px"></div>`;}).join('')}
+    <div class="note">Você só pode trocar até o número de vazios que tem. Cada vazio devolvido vira um cheio do mesmo tamanho.</div>
+  </div>
+  <footer><span></span><button class="btn gold" onclick="saveTroca()">Registrar troca</button></footer>`);
+}
+async function saveTroca(){
+  const data=document.getElementById('tr-data').value;let algo=false;
+  TAMANHOS.forEach(t=>{const n=+document.getElementById('tr-'+t).value||0;const e=estoqueTam(t);const real=Math.min(n,e.vazio);if(real>0){DB.deposito.push({tipo:'troca',deposito:DEPOSITO_PADRAO,tam:t,n:real,data});algo=true;}});
+  await persist();close();showToast(algo?'Troca registrada':'Nada a trocar');render();
+}
+
+// --- Ajuste manual ---
+function openAjuste(tam){
+  const e=estoqueTam(tam);
+  open(`<header><h3>Ajuste manual — ${tam}L</h3><p>Quando a contagem física diverge do sistema. O ajuste fica registrado com motivo, sem apagar o histórico.</p></header>
+  <div class="body">
+    <div class="note">Hoje o sistema diz: <b>${e.disponivel}</b> disponível · <b>${e.campo}</b> em campo · <b>${e.vazio}</b> vazios.</div>
+    <div class="grid2"><div class="field"><label>Qual estado</label><select id="aj-estado"><option value="disponivel">Disponível (cheio)</option><option value="vazio">Vazio</option><option value="campo">Em campo</option></select></div>
+    <div class="field"><label>Ajuste (+ entra, − sai)</label><input id="aj-delta" type="number" value="0" placeholder="ex.: -2 ou 3"></div></div>
+    <div class="field"><label>Motivo</label><input id="aj-motivo" placeholder="ex.: 2 barris quebrados, contagem do inventário"></div>
+    <div class="field"><label>Data</label><input id="aj-data" type="date" value="${iso(today())}"></div>
+  </div>
+  <footer><span></span><button class="btn primary" onclick="saveAjuste(${tam})">Registrar ajuste</button></footer>`);
+}
+async function saveAjuste(tam){
+  const delta=+document.getElementById('aj-delta').value||0;
+  if(!delta){showToast('Informe um valor de ajuste');return;}
+  const motivo=document.getElementById('aj-motivo').value.trim();
+  if(!motivo){showToast('Informe o motivo do ajuste');return;}
+  DB.deposito.push({tipo:'ajuste',deposito:DEPOSITO_PADRAO,tam,estado:document.getElementById('aj-estado').value,delta,motivo,data:document.getElementById('aj-data').value});
+  await persist();close();showToast('Ajuste registrado');render();
+}
+
+function renderEquipamentos(){
+  const secao=(classe,titulo,sub)=>{
+    const itens=equipsClasse(classe).map(e=>{const s=equipEstoque(e.id);return{e,s};});
+    const totT=itens.reduce((a,x)=>a+x.s.total,0),campoT=itens.reduce((a,x)=>a+x.s.campo,0);
+    const rows=itens.map(({e,s})=>`<tr class="row">
+        <td style="font-weight:600">${e.nome}</td>
+        <td class="num" style="color:var(--green-ok);font-weight:600">${s.disponivel}</td>
+        <td class="num" style="color:${s.campo?'var(--gold)':'var(--muted)'}">${s.campo}</td>
+        <td class="num" style="font-weight:600">${s.total}</td>
+        <td style="text-align:right"><button class="btn ghost sm" onclick="openEquipEdit(${e.id})">Editar</button></td>
+      </tr>`).join('')||`<tr><td colspan="5"><div class="empty" style="padding:24px"><b>Nenhum tipo cadastrado</b></div></td></tr>`;
+    return `<div class="panel"><h2>${titulo} <span class="tag">${campoT} em campo · ${totT} no total</span></h2>
+      <table><thead><tr><th>Tipo</th><th class="num">Disponível</th><th class="num">Em campo</th><th class="num">Total</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div style="padding:12px 20px"><button class="addline" onclick="openEquipNovo('${classe}')">+ Novo tipo de ${classe==='cilindro'?'cilindro':'manômetro'}</button></div></div>`;
+  };
+  view.innerHTML=headHTML('Equipamentos','Cilindros e manômetros','Os equipamentos que vão na instalação, controlados por tipo e quantidade. Disponível e em campo são derivados das vendas — igual aos barris. As chopeiras, por terem ficha individual, ficam na aba própria.','')+
+    `<div class="note" style="margin-bottom:16px">Cadastre quantos você tem de cada tipo no campo <b>Total</b> (seu patrimônio). O sistema desconta o que está em campo e mostra o disponível. Você pode criar novos tipos a qualquer momento.</div>`+
+    secao('cilindro','Cilindros de CO₂','por peso')+
+    secao('manometro','Manômetros','por vias');
+}
+function openEquipNovo(classe){
+  open(`<header><h3>Novo tipo de ${classe==='cilindro'?'cilindro':'manômetro'}</h3></header>
+  <div class="body">
+    <div class="field"><label>Nome do tipo</label><input id="eq-nome" placeholder="${classe==='cilindro'?'ex.: 8 kg':'ex.: 4 vias'}"></div>
+    <div class="field"><label>Quantos você tem (total)</label><input id="eq-total" type="number" min="0" value="0"></div>
+  </div>
+  <footer><span></span><button class="btn gold" onclick="saveEquipNovo('${classe}')">Cadastrar</button></footer>`);
+}
+async function saveEquipNovo(classe){
+  const nome=document.getElementById('eq-nome').value.trim();if(!nome){showToast('Informe o nome do tipo');return;}
+  DB.equipamentos.push({id:_eid++,classe,nome,total:+document.getElementById('eq-total').value||0});
+  await persist();close();showToast('Tipo cadastrado');render();
+}
+function openEquipEdit(id){
+  const e=equip(id);const s=equipEstoque(id);
+  open(`<header><h3>Editar — ${e.nome}</h3><p>${s.campo} em campo agora. O total não pode ser menor que isso.</p></header>
+  <div class="body">
+    <div class="field"><label>Nome do tipo</label><input id="eq-nome" value="${e.nome}"></div>
+    <div class="field"><label>Total (patrimônio)</label><input id="eq-total" type="number" min="${s.campo}" value="${e.total}"></div>
+    <div class="note">Disponível = total − em campo. Se você comprou mais, aumente o total. Mínimo: ${s.campo} (o que está em campo).</div>
+  </div>
+  <footer><span></span><button class="btn primary" onclick="saveEquipEdit(${id})">Salvar</button></footer>`);
+}
+async function saveEquipEdit(id){
+  const e=equip(id);const s=equipEstoque(id);
+  const total=+document.getElementById('eq-total').value;
+  if(total<s.campo){showToast('Total não pode ser menor que o em campo ('+s.campo+')');return;}
+  e.nome=document.getElementById('eq-nome').value.trim()||e.nome;e.total=total;
+  await persist();close();showToast('Equipamento atualizado');render();
+}
+
+let chFoco='todos'; // todos | disponivel | campo | manutencao
+function renderChopeiras(){
+  const modelos={};
+  DB.chopeiras.forEach(c=>{const m=modelos[c.modelo]=modelos[c.modelo]||{total:0,disp:0,campo:0,manut:0};m.total++;m[c.status==='disponivel'?'disp':c.status==='campo'?'campo':'manut']++;});
+  const parque=Object.entries(modelos).map(([m,v])=>`<div class="pq"><div class="m">${m}</div><div class="tot mono">${v.total}</div><div class="br"><span><i style="background:#3F6B4E"></i>${v.disp} livre</span><span><i style="background:#B8761A"></i>${v.campo} campo</span>${v.manut?`<span><i style="background:#A8421C"></i>${v.manut} manut</span>`:''}</div></div>`).join('');
+  const disp=chDisp();
+  const f=chFoco;
+  const filtradas=DB.chopeiras.slice().filter(c=>f==='todos'||c.status===f).sort((a,b)=>a.etiqueta.localeCompare(b.etiqueta));
+  const rows=filtradas.map(c=>{
+    const dias=c.status==='campo'?days(c.desde,today()):null;
+    let acoes;
+    if(c.status==='campo')acoes=`<span style="color:var(--muted);font-size:12px">recolhe junto com a venda</span>`;
+    else if(c.status==='disponivel')acoes=`<button class="btn ghost sm" onclick="manutChopeira(${c.id})">Manutenção/limpeza</button>`;
+    else acoes=`<button class="btn gold sm" onclick="liberarChopeira(${c.id})">Marcar pronta</button>`;
+    const ult=c.eventos.filter(e=>e.tipo==='manutencao'||e.tipo==='limpeza').slice(-1)[0];
+    const resv=reservaChopeira(c.id);
+    const resvBadge=resv?`<span class="chip" style="background:#EFE6FB;border-color:#C9B3E8;color:#5B3E8A">reservada p/ ${br(resv.dataEvento)}</span>`:'';
+    return `<tr class="row"><td><span class="chip tag">${c.etiqueta}</span> <b>${c.modelo}</b> ${resvBadge}<div class="specs" style="margin-top:5px"><span><b>${c.torneiras}</b> torneira${c.torneiras>1?'s':''}</span><span><b>${c.resfriamento}</b> L/h gelados</span><span><b>${c.potencia}</b> W</span></div></td><td>${stBadge(c.status)}</td><td>${c.status==='campo'?clienteNome(c.clienteId):c.status==='manutencao'?(ult&&ult.nota?ult.nota:'em manutenção'):'—'}</td><td>${dias!==null?`<div class="age"><span class="dot" style="background:${ageColor(dias)}"></span><span class="d" style="color:${ageColor(dias)}">${dias}d</span></div>`:'—'}</td><td style="text-align:right">${acoes}</td></tr>`;
+  }).join('');
+  const card=(estado,titulo,valor,cor,sub)=>`<div class="stat" style="cursor:pointer;${f===estado?'outline:2px solid '+cor+';outline-offset:-1px':''}" onclick="chFoco=${estado==='todos'?"'todos'":"(chFoco==='"+estado+"'?'todos':'"+estado+"')"};render()"><div class="k">${titulo}</div><div class="v mono"${cor?` style="color:${cor}"`:''}>${valor}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+  const tituloTab=f==='todos'?'Todas as chopeiras':{disponivel:'Disponíveis',campo:'Em campo',manutencao:'Em manutenção'}[f];
+  view.innerHTML=headHTML('Ativo principal','Chopeiras','Cada chopeira é uma unidade com etiqueta e ficha própria. Toque num card para filtrar por estado. Ela sai vinculada a uma venda e volta quando a venda é recolhida.',
+    `<button class="btn gold" onclick="openChopeira()">+ Cadastrar chopeira</button>`)+
+    `<div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      ${card('disponivel','Disponíveis agora',disp.length,'var(--green-ok)','prontas p/ próxima venda')}
+      ${card('campo','Em campo',chCampo().length,'var(--gold)','com clientes')}
+      ${card('manutencao','Em manutenção',chManut().length,'var(--rust)','fora de circulação')}
+      ${card('todos','Parque total',DB.chopeiras.length,'','todas as unidades')}
+    </div>
+    ${f==='todos'?`<div class="panel"><h2>Parque por modelo</h2><div class="parque">${parque||'<div class="empty">Sem chopeiras.</div>'}</div></div>`:''}
+    <div class="panel"><h2>${tituloTab} <span class="tag">${filtradas.length}${f!=='todos'?' · toque no card de novo p/ ver todas':''}</span></h2><table><thead><tr><th>Etiqueta / ficha</th><th>Estado</th><th>Com / situação</th><th>Há</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5"><div class="empty"><b>Nenhuma nesse estado</b></div></td></tr>'}</tbody></table></div>`;
+}
+
+function renderClientes(){
+  const rows=DB.clientes.map(c=>{
+    const ab=vendasAbertas().filter(v=>v.clienteId===c.id);
+    const barris=ab.reduce((s,v)=>s+emCampoItens(v).filter(g=>g.cat==='barril').reduce((a,g)=>a+g.qtd,0),0);
+    const chs=chCampo().filter(x=>x.clienteId===c.id).map(x=>x.etiqueta);
+    return `<tr class="row"><td style="font-weight:600">${c.nome}</td><td style="color:var(--muted)">${c.documento||'—'}</td><td style="color:var(--muted)">${c.cidade||'—'}</td><td class="num">${ab.length}</td><td class="num">${barris}</td><td>${chs.length?chs.map(e=>`<span class="chip tag">${e}</span>`).join(' '):'—'}</td></tr>`;
+  }).join('')||`<tr><td colspan="6"><div class="empty"><b>Sem clientes</b></div></td></tr>`;
+  view.innerHTML=headHTML('Cadastro','Clientes','Quem recebe chope e o que está com cada um.',`<button class="btn ghost" onclick="openCliente()">+ Novo cliente</button>`)+`<div class="panel"><h2>Clientes</h2><table><thead><tr><th>Nome</th><th>Documento</th><th>Cidade</th><th class="num">Vendas abertas</th><th class="num">Barris em campo</th><th>Chopeiras</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function produtoUsado(id){return DB.vendas.some(v=>diario(v).some(m=>m.prodId===id))||DB.reservas.some(r=>(r.itens||[]).some(i=>i.prodId===id));}
+function produtosAtivos(){return DB.produtos.filter(p=>!p.arquivado);}
+function renderProdutos(){
+  const ativos=DB.produtos.filter(p=>!p.arquivado);
+  const arquivados=DB.produtos.filter(p=>p.arquivado);
+  const linha=(p)=>{const m=p.precoLitro-p.custoLitro,pct=p.precoLitro?m/p.precoLitro*100:0;const usado=produtoUsado(p.id);
+    return `<tr class="row"><td style="font-weight:600">${p.estilo}</td><td>${p.fornecedor}</td><td class="num">${fmtR(p.custoLitro)}</td><td class="num">${fmtR(p.precoLitro)}</td><td class="num" style="color:${m>0?'var(--green-ok)':'var(--rust)'}">${fmtR(m)} <span style="color:var(--muted)">(${pct.toFixed(0)}%)</span></td>
+      <td style="text-align:right;white-space:nowrap">${p.arquivado?`<button class="btn ghost sm" onclick="desarquivarProduto(${p.id})">Reativar</button> <button class="btn ghost sm" onclick="excluirProduto(${p.id})" style="color:var(--rust)">Excluir</button>`:`<button class="btn ghost sm" onclick="openProduto(${p.id})">Editar</button> ${usado?`<button class="btn ghost sm" onclick="arquivarProduto(${p.id})">Arquivar</button> `:''}<button class="btn ghost sm" onclick="excluirProduto(${p.id})" style="color:var(--rust)">Excluir</button>`}</td></tr>`;};
+  const rows=ativos.map(linha).join('')||`<tr><td colspan="6"><div class="empty"><b>Nenhum produto</b></div></td></tr>`;
+  view.innerHTML=headHTML('Catálogo','Produtos e fornecedores','Cada fornecedor é um produto distinto, com custo e preço próprios. Edite quando o custo ou preço mudar.',`<button class="btn ghost" onclick="openProduto()">+ Novo produto</button>`)+
+    `<div class="panel"><h2>Catálogo <span class="tag">por litro</span></h2><table><thead><tr><th>Estilo</th><th>Fornecedor</th><th class="num">Custo/L</th><th class="num">Preço/L</th><th class="num">Margem/L</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`+
+    (arquivados.length?`<div class="panel"><h2>Arquivados <span class="tag">fora das novas vendas, mantidos pelo histórico</span></h2><table><tbody>${arquivados.map(linha).join('')}</tbody></table></div>`:'')+
+    `<div class="note">Editar custo/preço vale para vendas <b>novas</b>. Produto já usado em vendas não pode ser excluído (quebraria o histórico) — use <b>Arquivar</b>: ele some das opções de venda mas continua nos registros antigos.</div>`;
+}
+let finFoco='resumo'; // resumo | recebido | receber | custo
+function renderFinanceiro(){
+  const fechadas=DB.vendas.filter(v=>v.status==='fechada');
+  const rec=receitaRealizada();const cus=fechadas.reduce((s,v)=>s+custoVenda(v),0);const mar=rec-cus;
+  const pagas=DB.vendas.filter(v=>v.pago).sort((a,b)=>new Date(b.dataPagamento||0)-new Date(a.dataPagamento||0));
+  const aReceber=aReceberLista();
+  const pf={};
+  fechadas.forEach(v=>diario(v).filter(m=>m.cat==='barril'&&m.prodId).forEach(m=>{const sign=m.tipo==='saida'?1:(m.estado==='lacrado'||m.estado==='defeito'?-1:0);if(!sign)return;const l=sign*m.qtd*m.tam;const p=prod(m.prodId);const forn=p?p.fornecedor:'(produto excluído)';const custoL=p?p.custoLitro:0;pf[forn]=pf[forn]||{litros:0,cus:0};pf[forn].litros+=l;pf[forn].cus+=l*custoL;}));
+
+  const f=finFoco;
+  const card=(estado,titulo,valor,cor,sub)=>`<div class="stat" style="cursor:pointer;${f===estado?'outline:2px solid '+cor+';outline-offset:-1px':''}" onclick="finFoco=(finFoco==='${estado}'?'resumo':'${estado}');render()"><div class="k">${titulo}</div><div class="v mono" style="font-size:22px;color:${cor}">${valor}</div><div class="sub">${sub}</div></div>`;
+
+  // painel que muda conforme o card
+  let painel;
+  if(f==='recebido'){
+    const rows=pagas.map(v=>`<tr class="row"><td style="font-weight:600">${clienteNome(v.clienteId)}</td><td class="mono">${br(v.dataPagamento)}</td><td>${v.forma||'—'}</td><td>${v.status==='fechada'?'recolhida':'em campo'}</td><td class="num" style="font-weight:600;color:var(--green-ok)">${fmtR(valorVenda(v))}</td></tr>`).join('')||`<tr><td colspan="5"><div class="empty"><b>Nada recebido ainda</b></div></td></tr>`;
+    painel=`<div class="panel"><h2>Recebido — vendas pagas <span class="tag">${pagas.length} · ${fmtR(recebidoTotal())}</span></h2><table><thead><tr><th>Cliente</th><th>Pago em</th><th>Forma</th><th>Vasilhame</th><th class="num">Valor</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }else if(f==='receber'){
+    const rows=aReceber.map(v=>`<tr class="row"><td style="font-weight:600">${clienteNome(v.clienteId)}</td><td class="mono">${v.vencimento?`<span style="color:${vencido(v)?'var(--rust)':'inherit'}">${br(v.vencimento)}${vencido(v)?' ⚠':''}</span>`:'<span style="color:var(--muted)">sem prazo</span>'}</td><td>${v.status==='aberta'?'em campo':'recolhida'}</td><td class="num" style="font-weight:600;color:var(--gold)">${fmtR(valorVenda(v))}</td><td style="text-align:right"><button class="btn gold sm" onclick="openPagamento(${v.id})">Receber</button></td></tr>`).join('')||`<tr><td colspan="5"><div class="empty"><b>Tudo recebido</b></div></td></tr>`;
+    painel=`<div class="panel"><h2>A receber <span class="tag">${aReceber.length} · ${fmtR(totalAReceber())} · vencidos no topo</span></h2><table><thead><tr><th>Cliente</th><th>Vencimento</th><th>Vasilhame</th><th class="num">Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }else if(f==='custo'){
+    const fr=Object.entries(pf).map(([fn,v])=>`<tr class="row"><td style="font-weight:600">${fn}</td><td class="num">${v.litros}L</td><td class="num">${fmtR(v.cus)}</td></tr>`).join('')||`<tr><td colspan="3"><div class="empty"><b>Sem vendas acertadas</b></div></td></tr>`;
+    painel=`<div class="panel"><h2>Custo do chope consumido por fornecedor <span class="tag">${fmtR(cus)}</span></h2><table><thead><tr><th>Fornecedor</th><th class="num">Litros consumidos</th><th class="num">Custo</th></tr></thead><tbody>${fr}</tbody></table></div>`;
+  }else{
+    // resumo: resultado por venda acertada
+    const rows=fechadas.sort((a,b)=>new Date(b.dataRecolhimento||0)-new Date(a.dataRecolhimento||0)).map(v=>{const r=valorVenda(v),c=custoVenda(v),mg=r-c;return `<tr class="row"><td style="font-weight:600">${clienteNome(v.clienteId)}</td><td class="mono">${br(v.dataRecolhimento)}</td><td>${v.pago?'<span class="st fechada">● pago</span>':'<span class="st aberta">● a receber</span>'}</td><td class="num">${fmtR(r)}</td><td class="num" style="color:var(--muted)">${fmtR(c)}</td><td class="num" style="font-weight:600;color:${mg>0?'var(--green-ok)':'var(--rust)'}">${fmtR(mg)}</td></tr>`;}).join('')||`<tr><td colspan="6"><div class="empty"><b>Nenhuma venda acertada</b>Recolha uma venda para ver o resultado.</div></td></tr>`;
+    painel=`<div class="panel"><h2>Resultado por venda acertada <span class="tag">toque num card acima p/ detalhar</span></h2><table><thead><tr><th>Cliente</th><th>Recolhida</th><th>Pgto</th><th class="num">Receita</th><th class="num">Custo</th><th class="num">Margem</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  view.innerHTML=headHTML('Resultado','Financeiro','Toque num card para ver as vendas por trás dele. Receita é caixa recebido (pago), não venda fechada.','')+
+    `<div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      ${card('recebido','Recebido',fmtR(recebidoTotal()),'var(--green-ok)','dinheiro que entrou')}
+      ${card('receber','A receber',fmtR(totalAReceber()),'var(--gold)',aReceber.length+' venda(s) em aberto')}
+      ${card('custo','Custo (consumido)',fmtR(cus),'var(--ink)','vendas recolhidas')}
+      <div class="stat" style="${f==='resumo'?'outline:2px solid var(--green-ok);outline-offset:-1px':''}"><div class="k">Margem bruta</div><div class="v mono" style="font-size:22px;color:${mar>0?'var(--green-ok)':'var(--rust)'}">${fmtR(mar)}</div><div class="sub">recebido − custo</div></div>
+    </div>
+    ${painel}
+    <div class="note">Recebido = vendas pagas (mesmo ainda em campo). A receber = vendas não pagas. Custo = chope que saiu e foi consumido. Toque nos cards para alternar a lista.</div>`;
+}
+let co2Foco='todos'; // todos | reabastecer | campo | prontos
+function renderCO2(){
+  const baixos=cilBaixos(),prontos=cilProntos(),campo=cilCampo();
+  const gasTotal=DB.cilindros.reduce((s,c)=>s+c.cargaAtual,0);
+  const f=co2Foco;
+  const lista=f==='reabastecer'?baixos:f==='campo'?campo:f==='prontos'?prontos:DB.cilindros.slice();
+  const ordenada=lista.slice().sort((a,b)=>a.cargaAtual-b.cargaAtual);
+  const linha=(c)=>{const baixo=c.status==='disponivel'&&c.cargaAtual<CIL_REABASTECER;const pct=Math.max(0,Math.min(100,c.cargaAtual/c.capacidade*100));
+    const ult=c.pesagens.slice(-1)[0];
+    return `<tr class="row">
+      <td><span class="chip tag">${c.etiqueta}</span> <b>${c.capacidade}kg</b>${baixo?' <span style="color:var(--rust);font-weight:600">⚠ reabastecer</span>':''}</td>
+      <td>${c.status==='campo'?`<span class="st aberta">● em campo</span>`:`<span class="st fechada">● no depósito</span>`}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;max-width:120px;height:7px;background:var(--line);border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${baixo?'var(--rust)':pct<40?'var(--gold)':'var(--green-ok)'}"></div></div><span class="mono" style="font-weight:600;font-size:13px;color:${baixo?'var(--rust)':'inherit'}">${c.cargaAtual.toFixed(1)}kg</span></div>${ult?`<div style="font-size:11px;color:var(--muted);margin-top:2px">última pesagem ${br(ult.data)}</div>`:''}</td>
+      <td class="num" style="color:var(--muted);font-size:12.5px">tara ${c.tara}kg</td>
+      <td style="text-align:right">${c.status==='disponivel'?`<button class="btn gold sm" onclick="openEncher(${c.id})">Encher</button> <button class="btn ghost sm" onclick="openPesar(${c.id})">Pesar</button>`:`<span style="color:var(--muted);font-size:12px">volta com a venda</span>`} <button class="btn ghost sm" onclick="openCilEdit(${c.id})">Ficha</button></td>
+    </tr>`;};
+  const rows=ordenada.map(linha).join('')||`<tr><td colspan="5"><div class="empty"><b>Nenhum cilindro</b>Cadastre seus cilindros para controlar a carga de gás.</div></td></tr>`;
+  const card=(estado,titulo,valor,cor,sub)=>`<div class="stat" style="cursor:pointer;${f===estado?'outline:2px solid '+cor+';outline-offset:-1px':''}" onclick="co2Foco=${estado==='todos'?"'todos'":"(co2Foco==='"+estado+"'?'todos':'"+estado+"')"};render()"><div class="k">${titulo}</div><div class="v mono"${cor?` style="color:${cor}"`:''}>${valor}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+  const tituloTab=f==='reabastecer'?'Precisam reabastecer':f==='campo'?'Em campo':f==='prontos'?'Prontos no depósito':'Todos os cilindros';
+  view.innerHTML=headHTML('Gás','Cilindros de CO₂','Controle de carga por cilindro. Você pesa quando o cilindro está na mão; a carga = peso na balança − tara. Abaixo de 1kg, ele aparece como "reabastecer".',
+    `<button class="btn gold" onclick="openCilNovo()">+ Cadastrar cilindro</button>`)+
+    `<div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      ${card('reabastecer','Precisam reabastecer',baixos.length,'var(--rust)','abaixo de 1kg')}
+      ${card('prontos','Prontos p/ usar',prontos.length,'var(--green-ok)','com gás no depósito')}
+      ${card('campo','Em campo',campo.length,'var(--gold)','com clientes')}
+      ${card('todos','Gás total estimado',gasTotal.toFixed(1)+'kg','','soma das últimas pesagens')}
+    </div>
+    ${baixos.length&&f==='todos'?`<div class="note" style="border-left-color:var(--rust);margin-bottom:16px;color:#8A3415"><b>${baixos.length} cilindro(s) precisam reabastecer</b> — estão no depósito com menos de 1kg de gás. Toque no card vermelho para ver quais.</div>`:''}
+    <div class="panel"><h2>${tituloTab} <span class="tag">${ordenada.length}${f!=='todos'?' · toque no card de novo p/ ver todos':''}</span></h2><table><thead><tr><th>Cilindro</th><th>Onde</th><th>Carga de gás</th><th class="num">Ficha</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="note">A carga só atualiza quando <b>você pesa</b> — o sistema não mede o consumo em campo. Pese o cilindro quando ele voltar, e a carga reflete a última leitura. "Encher" registra a carga cheia após recarregar na fábrica.</div>`;
+}
+function openCilNovo(){
+  open(`<header><h3>Cadastrar cilindro</h3><p>Cada cilindro é uma unidade com etiqueta e ficha própria.</p></header>
+  <div class="body">
+    <div class="grid2"><div class="field"><label>Etiqueta</label><input id="cl-etq" placeholder="CIL-001"></div><div class="field"><label>Capacidade (kg)</label><input id="cl-cap" type="number" step="0.5" value="6"></div></div>
+    <div class="grid2"><div class="field"><label>Tara — peso do vazio (kg)</label><input id="cl-tara" type="number" step="0.1" placeholder="ex.: 9.5"></div><div class="field"><label>Carga atual de gás (kg)</label><input id="cl-carga" type="number" step="0.1" placeholder="0 se vazio"></div></div>
+    <div class="note">A tara você pesa uma vez com o cilindro vazio e anota aqui. Se cadastrar já cheio, ponha a carga = capacidade.</div>
+  </div>
+  <footer><span></span><button class="btn gold" onclick="saveCilNovo()">Cadastrar</button></footer>`);
+}
+async function saveCilNovo(){
+  const etq=document.getElementById('cl-etq').value.trim();if(!etq){showToast('Informe a etiqueta');return;}
+  const cap=+document.getElementById('cl-cap').value||6,tara=+document.getElementById('cl-tara').value||0,carga=+document.getElementById('cl-carga').value||0;
+  DB.cilindros.push({id:_clid++,etiqueta:etq,capacidade:cap,tara,cargaAtual:Math.min(carga,cap),status:'disponivel',vendaId:null,pesagens:[]});
+  await persist();close();showToast('Cilindro cadastrado');render();
+}
+function openCilEdit(id){const c=cil(id);
+  open(`<header><h3>Ficha — ${c.etiqueta}</h3></header>
+  <div class="body">
+    <div class="grid2"><div class="field"><label>Etiqueta</label><input id="cl-etq" value="${c.etiqueta}"></div><div class="field"><label>Capacidade (kg)</label><input id="cl-cap" type="number" step="0.5" value="${c.capacidade}"></div></div>
+    <div class="field"><label>Tara — peso do vazio (kg)</label><input id="cl-tara" type="number" step="0.1" value="${c.tara}"></div>
+    ${c.pesagens.length?`<div class="field"><label>Histórico de pesagens</label><div style="font-size:12.5px;color:var(--muted)">${c.pesagens.slice(-5).reverse().map(p=>`${br(p.data)}: ${p.carga.toFixed(1)}kg${p.pesoBalanca?' (balança '+p.pesoBalanca+'kg)':''}`).join('<br>')}</div></div>`:''}
+  </div>
+  <footer><span></span><button class="btn primary" onclick="saveCilEdit(${id})">Salvar</button></footer>`);
+}
+async function saveCilEdit(id){const c=cil(id);
+  c.etiqueta=document.getElementById('cl-etq').value.trim()||c.etiqueta;c.capacidade=+document.getElementById('cl-cap').value||c.capacidade;c.tara=+document.getElementById('cl-tara').value||c.tara;
+  await persist();close();showToast('Ficha atualizada');render();
+}
+function openEncher(id){const c=cil(id);
+  open(`<header><h3>Encher ${c.etiqueta}</h3><p>Registra a carga cheia após recarregar na fábrica.</p></header>
+  <div class="body"><div class="field"><label>Carga de gás após encher (kg)</label><input id="cl-carga" type="number" step="0.1" value="${c.capacidade}"></div>
+  <div class="note">Normalmente igual à capacidade (${c.capacidade}kg). Ajuste se a fábrica encheu menos.</div></div>
+  <footer><span></span><button class="btn gold" onclick="saveEncher(${id})">Registrar cheio</button></footer>`);
+}
+async function saveEncher(id){const c=cil(id);const carga=Math.min(+document.getElementById('cl-carga').value||c.capacidade,c.capacidade);
+  c.cargaAtual=carga;c.pesagens.push({data:iso(today()),pesoBalanca:null,carga});
+  await persist();close();showToast('Cilindro cheio registrado');render();
+}
+function openPesar(id){const c=cil(id);
+  open(`<header><h3>Pesar ${c.etiqueta}</h3><p>Ponha na balança. A carga de gás = peso total − tara (${c.tara}kg).</p></header>
+  <div class="body"><div class="field"><label>Peso na balança (kg)</label><input id="cl-peso" type="number" step="0.1" placeholder="ex.: ${(c.tara+c.cargaAtual).toFixed(1)}" oninput="document.getElementById('cl-calc').textContent='Gás: '+Math.max(0,(+this.value-${c.tara})).toFixed(1)+'kg'"></div>
+  <div id="cl-calc" style="font-weight:600;color:var(--gold)">Gás: —</div>
+  <div class="note">Se o peso for menor que a tara, algo está errado na medida — confira a tara na ficha.</div></div>
+  <footer><span></span><button class="btn primary" onclick="savePesar(${id})">Registrar pesagem</button></footer>`);
+}
+async function savePesar(id){const c=cil(id);const peso=+document.getElementById('cl-peso').value;
+  if(!peso){showToast('Informe o peso da balança');return;}
+  const carga=Math.max(0,+(peso-c.tara).toFixed(1));
+  c.cargaAtual=carga;c.pesagens.push({data:iso(today()),pesoBalanca:peso,carga});
+  await persist();close();showToast('Pesagem registrada · gás '+carga+'kg');render();
+}
+
+// ---- modais ----
+const scrim=document.getElementById('scrim'),modal=document.getElementById('modal'),toast=document.getElementById('toast');
+function close(){scrim.classList.remove('on');}
+scrim.addEventListener('click',e=>{if(e.target===scrim)close();});
+function showToast(t,ms){toast.textContent=t;toast.classList.add('on');setTimeout(()=>toast.classList.remove('on'),ms||2200);}
+function open(h){modal.innerHTML=h;scrim.classList.add('on');}
+function clienteOptions(s){return DB.clientes.map(c=>`<option value="${c.id}" ${c.id===s?'selected':''}>${c.nome}</option>`).join('');}
+
+// NOVA VENDA (entrega)
+let vItens=[],vChops=[],vEquip={};
+function openVenda(){
+  vItens=[{cat:'barril',tam:50,qtd:1,prodId:DB.produtos[0]?DB.produtos[0].id:null}];vChops=[];vEquip={};
+  const disp=chDisp();
+  open(`<header><h3>Nova venda</h3><p>Registre a entrega. O acerto (o que voltou lacrado) é feito depois, no recolhimento.</p></header>
+  <div class="body">
+    <div class="grid2"><div class="field"><label>Cliente</label><select id="v-cli" onchange="vClienteInfo()">${clienteOptions()}</select></div><div class="field"><label>Dados do cliente</label><div id="v-cliinfo" style="font-size:12px;color:var(--muted);padding:8px 0;line-height:1.5"></div></div></div>
+    <div class="grid2"><div class="field"><label>Data da entrega</label><input id="v-data" type="date" value="${iso(today())}"></div><div class="field"><label>Hora combinada</label><input id="v-hora" type="time" value="09:00"></div></div>
+    <div class="field"><label>Endereço de entrega <span style="color:var(--muted);font-weight:400">(vem do cliente — altere se a instalação for em outro lugar)</span></label><input id="v-end" placeholder="endereço onde instalar"><div style="font-size:11.5px;color:var(--muted);margin-top:4px"><a onclick="document.getElementById('v-end').value=(cliente(+document.getElementById('v-cli').value)||{}).endereco||'';document.getElementById('v-endref').value=(cliente(+document.getElementById('v-cli').value)||{}).ref||''" style="color:var(--gold);cursor:pointer">↺ usar endereço do cadastro</a></div></div>
+    <div class="field"><label>Ponto de referência da entrega</label><input id="v-endref" placeholder="ex.: chácara, portão azul"></div>
+    <div id="v-items"></div><button class="addline" onclick="addVItem()">+ Adicionar barril</button>
+    <div class="field"><label>Modelo de chopeira a instalar</label><select id="v-chopmod"><option value="">— nenhuma —</option>${modelosChopeira().map(m=>`<option value="${m}">${m}</option>`).join('')}</select><div style="font-size:11.5px;color:var(--muted);margin-top:5px">A unidade específica (etiqueta) é definida na hora de instalar, pela Agenda, entre as disponíveis do modelo.</div></div>
+    <div class="field"><label>Equipamentos que vão na instalação</label><div id="v-equip"></div></div>
+    <div class="field"><label>Valor (R$) — opcional</label><input id="v-valor" type="number" min="0" step="0.01" placeholder="deixe em branco p/ calcular no recolhimento"></div>
+    <div class="grid2">
+      <div class="field"><label>Pagamento</label><select id="v-pago"><option value="nao">A receber (ainda não pago)</option><option value="sim">Já foi pago</option></select></div>
+      <div class="field"><label>Vencimento (se a prazo) — opcional</label><input id="v-venc" type="date"></div>
+    </div>
+    <div class="grid2" id="v-pagbox" style="display:none">
+      <div class="field"><label>Data do pagamento</label><input id="v-pagdata" type="date" value="${iso(today())}"></div>
+      <div class="field"><label>Forma (opcional)</label><select id="v-forma"><option value="">— não informar —</option><option>Pix</option><option>Dinheiro</option><option>Transferência</option><option>Boleto</option></select></div>
+    </div>
+    <div class="field"><label>Observações <span style="color:var(--muted);font-weight:400">(opcional)</span></label><textarea id="v-obs" rows="2" placeholder="ex.: cliente vai retirar o barril no dia seguinte; subir escada; falar com o João" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:13.5px;resize:vertical"></textarea></div>
+  </div>
+  <footer><span class="acerto"></span><button class="btn gold" onclick="saveVenda()">Registrar venda</button></footer>`);
+  drawVItems();vClienteInfo();drawVEquip();
+  const sel=document.getElementById('v-pago');sel.addEventListener('change',()=>{document.getElementById('v-pagbox').style.display=sel.value==='sim'?'grid':'none';});
+}
+function drawVEquip(){
+  const box=document.getElementById('v-equip');if(!box)return;
+  const grupo=(classe,lab)=>{const its=equipsClasse(classe);if(!its.length)return '';
+    return `<div style="margin-bottom:8px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:4px">${lab}</div><div style="display:flex;flex-wrap:wrap;gap:8px">${its.map(e=>{const s=equipEstoque(e.id);const cur=vEquip[e.id]||0;return `<div style="display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;padding:5px 9px"><span style="font-size:12.5px;font-weight:500">${e.nome}</span><span style="font-size:11px;color:${s.disponivel>0?'var(--green-ok)':'var(--rust)'}">(${s.disponivel} disp.)</span><input type="number" min="0" max="${s.disponivel}" value="${cur}" style="width:52px;padding:5px;border:1px solid var(--line);border-radius:7px" onchange="vEquip[${e.id}]=Math.min(+this.value,${s.disponivel});this.value=vEquip[${e.id}]"></div>`;}).join('')}</div></div>`;};
+  box.innerHTML=(grupo('cilindro','Cilindro CO₂')+grupo('manometro','Manômetro'))||'<div style="font-size:12px;color:var(--muted)">Nenhum equipamento cadastrado. Cadastre na aba Equipamentos.</div>';
+}
+function vClienteInfo(){const sel=document.getElementById('v-cli');const box=document.getElementById('v-cliinfo');if(!sel||!box)return;const c=cliente(+sel.value);box.innerHTML=c?`${c.endereco||'sem endereço'}${c.ref?' — '+c.ref:''}<br>${c.cidade||''} ${c.tel?'· '+c.tel:''}${c.documento?'<br>doc: '+c.documento:''}`:'';
+  // preenche endereço de entrega com o do cadastro (só se o campo ainda estiver vazio ou for troca de cliente)
+  const end=document.getElementById('v-end'),ref=document.getElementById('v-endref');
+  if(end&&c&&!end.dataset.tocado){end.value=c.endereco||'';if(ref)ref.value=c.ref||'';}
+}
+function toggleVChop(id,on){vChops=vChops.filter(x=>x!==id);if(on)vChops.push(id);}
+function addVItem(){vItens.push({cat:'barril',tam:50,qtd:1,prodId:DB.produtos[0]?DB.produtos[0].id:null});drawVItems();}
+function drawVItems(){
+  document.getElementById('v-items').innerHTML=vItens.map((it,i)=>{
+    return `<div class="itemrow"><div class="field"><label>${i===0?'Barril':''}</label><select onchange="vItens[${i}].tam=+this.value">${TAMANHOS.map(t=>`<option value="${t}" ${it.tam===t?'selected':''}>${t}L</option>`).join('')}</select></div><div class="field"><label>${i===0?'Produto':''}</label><select onchange="vItens[${i}].prodId=+this.value">${produtosAtivos().map(p=>`<option value="${p.id}" ${it.prodId===p.id?'selected':''}>${p.estilo} · ${p.fornecedor}</option>`).join('')}</select></div><div class="field"><label>${i===0?'Qtd':''}</label><input type="number" min="1" value="${it.qtd}" onchange="vItens[${i}].qtd=+this.value"></div><button class="x" onclick="vItens.splice(${i},1);drawVItems()" ${vItens.length===1?'style="visibility:hidden"':''}>×</button></div>`;
+  }).join('');
+}
+async function saveVenda(){
+  const cli=+document.getElementById('v-cli').value,data=document.getElementById('v-data').value,valor=parseFloat(document.getElementById('v-valor').value);
+  const hora=document.getElementById('v-hora')?document.getElementById('v-hora').value:'';
+  if(!cli){showToast('Escolha o cliente');return;}
+  const pago=document.getElementById('v-pago').value==='sim';
+  const venc=document.getElementById('v-venc').value||null;
+  const itens=vItens.map(it=>({cat:'barril',tam:it.tam,prodId:it.prodId,qtd:it.qtd}));
+  const equipMovs=Object.entries(vEquip).filter(([id,q])=>q>0).map(([id,q])=>({tipo:'saida',cat:'equip',equipId:+id,qtd:q,data}));
+  const v={id:_vid++,clienteId:cli,dataEntrega:data,horaEntrega:hora,dataRecolhe:null,horaRecolhe:null,dataRecolhimento:null,status:'aberta',valor:isNaN(valor)?null:valor,
+    pago,dataPagamento:pago?(document.getElementById('v-pagdata').value||data):null,forma:pago?(document.getElementById('v-forma').value||null):null,vencimento:venc,
+    chopeiraModelo:document.getElementById('v-chopmod')?document.getElementById('v-chopmod').value:'',
+    enderecoEntrega:(document.getElementById('v-end')?document.getElementById('v-end').value.trim():'')||null,
+    refEntrega:(document.getElementById('v-endref')?document.getElementById('v-endref').value.trim():'')||null,
+    obs:(document.getElementById('v-obs')?document.getElementById('v-obs').value.trim():'')||null,
+    itens,chopeiraIds:[],
+    movs:[...itens.map(i=>({tipo:'saida',cat:'barril',tam:i.tam,prodId:i.prodId,qtd:i.qtd,data})),...equipMovs]};
+  DB.vendas.push(v);
+  await persist();close();showToast('Venda registrada');render();
+}
+
+function openPagamento(vid){
+  const v=DB.vendas.find(x=>x.id===vid);
+  open(`<header><h3>Registrar pagamento — ${clienteNome(v.clienteId)}</h3><p>Valor da venda: ${fmtR(valorVenda(v))}. O recebimento é independente do recolhimento do vasilhame.</p></header>
+  <div class="body">
+    <div class="field"><label>Valor recebido (R$)</label><input id="pg-valor" type="number" min="0" step="0.01" value="${valorVenda(v).toFixed(2)}"></div>
+    <div class="grid2"><div class="field"><label>Data do recebimento</label><input id="pg-data" type="date" value="${iso(today())}"></div>
+    <div class="field"><label>Forma (opcional)</label><select id="pg-forma"><option value="">— não informar —</option><option>Pix</option><option>Dinheiro</option><option>Transferência</option><option>Boleto</option></select></div></div>
+  </div>
+  <footer><span></span><button class="btn gold" onclick="confirmPagamento(${vid})">Confirmar recebimento</button></footer>`);
+}
+async function confirmPagamento(vid){
+  const v=DB.vendas.find(x=>x.id===vid);
+  v.valor=parseFloat(document.getElementById('pg-valor').value)||v.valor;
+  v.pago=true;v.dataPagamento=document.getElementById('pg-data').value;v.forma=document.getElementById('pg-forma').value||null;
+  await persist();close();showToast('Pagamento registrado');render();
+}
+function quitarCliente(cid,escopo){
+  const todas=DB.vendas.filter(v=>v.clienteId===cid&&!v.pago);
+  const pend=escopo==='recolhidos'?todas.filter(v=>v.status!=='aberta'):todas;
+  const total=pend.reduce((s,v)=>s+valorVenda(v),0);
+  const titulo=escopo==='recolhidos'?'Quitar recolhidos':'Quitar tudo';
+  const aviso=escopo==='recolhidos'
+    ?'Marca como pago só o que já foi <b>recolhido</b> (material de volta). O que ainda está em campo permanece em aberto.'
+    :'Marca como pago <b>tudo</b> que está em aberto, inclusive o que ainda está em campo. Use quando o cliente quitou tudo, mesmo adiantado.';
+  open(`<header><h3>${titulo} — ${clienteNome(cid)}</h3><p>Registrar o pagamento de <b>${pend.length} pendência(s)</b>, somando <b>${fmtR(total)}</b>.</p></header>
+  <div class="body">
+    <div style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:9px;margin-bottom:14px">
+      ${pend.map(v=>`<div style="display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--line);font-size:13px"><span>venda ${br(v.dataEntrega)} ${v.status!=='aberta'?'<span style="color:#8A3415">· recolhida</span>':'<span style="color:var(--muted)">· em campo</span>'}</span><span style="font-weight:600">${fmtR(valorVenda(v))}</span></div>`).join('')}
+    </div>
+    <div class="grid2"><div class="field"><label>Data do recebimento</label><input id="qt-data" type="date" value="${iso(today())}"></div>
+    <div class="field"><label>Forma (opcional)</label><select id="qt-forma"><option value="">— não informar —</option><option>Pix</option><option>Dinheiro</option><option>Transferência</option><option>Boleto</option></select></div></div>
+    <div class="note" style="margin-top:4px">${aviso} Se foi pagamento parcial, use o "Pagar" de cada venda.</div>
+  </div>
+  <footer><span></span><button class="btn primary" onclick="confirmQuitarCliente(${cid},'${escopo}')">Confirmar ${fmtR(total)}</button></footer>`);
+}
+async function confirmQuitarCliente(cid,escopo){
+  const data=document.getElementById('qt-data').value;const forma=document.getElementById('qt-forma').value||null;
+  const todas=DB.vendas.filter(v=>v.clienteId===cid&&!v.pago);
+  const pend=escopo==='recolhidos'?todas.filter(v=>v.status!=='aberta'):todas;
+  let n=0;pend.forEach(v=>{v.pago=true;v.dataPagamento=data;v.forma=forma;n++;});
+  await persist();close();showToast(n+' pagamento(s) registrados');render();
+}
+
+// RESERVAS
+let rItens=[],rChops=[];
+function openReserva(){
+  rItens=[{tam:50,qtd:1,prodId:DB.produtos[0]?DB.produtos[0].id:null}];rChops=[];
+  open(`<header><h3>Nova reserva</h3><p>Evento futuro: reserve chopeiras e chopp para a data. As chopeiras seguem em uso normal até lá.</p></header>
+  <div class="body">
+    <div class="grid2"><div class="field"><label>Cliente</label><select id="r-cli">${clienteOptions()}</select></div><div class="field"><label>Data do evento</label><input id="r-data" type="date" value="${iso(today())}"></div></div>
+    <div class="field"><label>Chopp reservado</label><div id="r-items"></div><button class="addline" onclick="addRItem()">+ Adicionar barril</button></div>
+    <div class="field"><label>Chopeiras reservadas (todas, mesmo as em uso hoje)</label><div class="pick">${DB.chopeiras.map(c=>{const r=reservaChopeira(c.id);return r?`<label style="opacity:.5"><input type="checkbox" disabled> ${c.etiqueta} · ${c.modelo} <span style="color:var(--rust);font-size:11px">— reservada ${br(r.dataEvento)}</span></label>`:`<label><input type="checkbox" value="${c.id}" onchange="toggleRChop(${c.id},this.checked)"> ${c.etiqueta} · ${c.modelo}</label>`;}).join('')}</div></div>
+    <div class="field"><label>Observação (opcional)</label><input id="r-obs" placeholder="ex.: casamento, formatura, prazo de montagem…"></div>
+  </div>
+  <footer><span></span><button class="btn gold" onclick="saveReserva()">Reservar evento</button></footer>`);
+  drawRItems();
+}
+function toggleRChop(id,on){rChops=rChops.filter(x=>x!==id);if(on)rChops.push(id);}
+function addRItem(){rItens.push({tam:50,qtd:1,prodId:DB.produtos[0]?DB.produtos[0].id:null});drawRItems();}
+function drawRItems(){
+  document.getElementById('r-items').innerHTML=rItens.map((it,i)=>`<div class="itemrow" style="margin-bottom:6px"><div class="field"><label>${i===0?'Tamanho':''}</label><select onchange="rItens[${i}].tam=+this.value">${TAMANHOS.map(t=>`<option value="${t}" ${it.tam===t?'selected':''}>${t}L</option>`).join('')}</select></div><div class="field"><label>${i===0?'Produto':''}</label><select onchange="rItens[${i}].prodId=+this.value">${produtosAtivos().map(p=>`<option value="${p.id}" ${it.prodId===p.id?'selected':''}>${p.estilo} · ${p.fornecedor}</option>`).join('')}</select></div><div class="field"><label>${i===0?'Qtd':''}</label><input type="number" min="1" value="${it.qtd}" onchange="rItens[${i}].qtd=+this.value"></div><button class="x" onclick="rItens.splice(${i},1);drawRItems()" ${rItens.length===1?'style="visibility:hidden"':''}>×</button></div>`).join('');
+}
+async function saveReserva(){
+  const cli=+document.getElementById('r-cli').value,data=document.getElementById('r-data').value;
+  if(!cli){showToast('Escolha o cliente');return;}
+  // PROTEÇÃO: impede reservar uma chopeira que já está em outra reserva futura
+  const conflito=chopeirasEmConflito(rChops);
+  if(conflito.length){
+    const nomes=conflito.map(id=>{const c=DB.chopeiras.find(x=>x.id===id);const r=reservaChopeira(id);return `${c.etiqueta} (já reservada p/ ${clienteNome(r.clienteId)} em ${br(r.dataEvento)})`;}).join('; ');
+    showToast('Chopeira indisponível: '+nomes,5000);
+    return;
+  }
+  DB.reservas.push({id:_rid++,clienteId:cli,dataEvento:data,itens:rItens.map(i=>({cat:'barril',tam:i.tam,prodId:i.prodId,qtd:i.qtd})),chopeiraIds:rChops.slice(),obs:document.getElementById('r-obs').value.trim(),status:'reservada'});
+  await persist();close();showToast('Evento reservado');render();
+}
+async function cancelarReserva(id){const r=DB.reservas.find(x=>x.id===id);r.status='cancelada';await persist();showToast('Reserva cancelada');render();}
+function confirmCancelarReserva(id){const r=DB.reservas.find(x=>x.id===id);
+  open(`<header><h3>Cancelar reserva?</h3><p>Evento de <b>${clienteNome(r.clienteId)}</b> em <b>${br(r.dataEvento)}</b>. As chopeiras reservadas voltam a ficar livres para outras datas.</p></header><div class="body"></div><footer><button class="btn ghost" onclick="close()">Voltar</button><button class="btn" style="background:var(--rust);color:#fff" onclick="cancelarReserva(${id});close()">Sim, cancelar</button></footer>`);
+}
+function definirChopeira(vid){
+  const v=DB.vendas.find(x=>x.id===vid);
+  const disp=v.chopeiraModelo?chDispModelo(v.chopeiraModelo):chDisp();
+  const titulo=v.chopeiraModelo?`Definir unidade — ${v.chopeiraModelo}`:'Definir chopeira';
+  open(`<header><h3>${titulo}</h3><p>${clienteNome(v.clienteId)} · ${br(v.dataEntrega)}${v.horaEntrega?' às '+v.horaEntrega:''}. ${v.chopeiraModelo?'Escolha qual '+v.chopeiraModelo+' disponível vai.':'Escolha a chopeira.'}</p></header>
+  <div class="body">
+    ${disp.length?`<div class="field"><label>${v.chopeiraModelo?v.chopeiraModelo+' disponíveis':'Chopeiras disponíveis'}</label><div class="pick">${disp.map(c=>`<label><input type="radio" name="defch" value="${c.id}"> ${c.etiqueta} · ${c.modelo} <span style="color:var(--muted)">(${c.resfriamento} L/h)</span></label>`).join('')}</div></div>`:`<div class="note" style="border-left-color:var(--rust)">Nenhuma ${v.chopeiraModelo||'chopeira'} disponível agora — todas em campo ou manutenção. Recolha uma ou libere da manutenção primeiro.</div>`}
+  </div>
+  <footer><span></span><button class="btn gold" onclick="confirmDefinirChopeira(${vid})">Definir</button></footer>`);
+}
+async function confirmDefinirChopeira(vid){
+  const sel=document.querySelector('#scrim input[name=defch]:checked');
+  if(!sel){showToast('Escolha uma chopeira');return;}
+  const v=DB.vendas.find(x=>x.id===vid);const id=+sel.value;
+  if(!v.chopeiraIds.includes(id)){v.chopeiraIds.push(id);setCampo(id,v.clienteId,v.dataEntrega,v.id);}
+  await persist();close();showToast('Chopeira definida e em campo');render();
+}
+function converterReserva(id){
+  const r=DB.reservas.find(x=>x.id===id);
+  r.status='convertida';
+  openVenda();
+  vItens=r.itens.map(i=>({cat:'barril',tam:i.tam,qtd:i.qtd,prodId:i.prodId}));
+  const sel=document.getElementById('v-cli');if(sel)sel.value=r.clienteId;
+  vClienteInfo();
+  // modelo da chopeira a partir das unidades reservadas (se houver)
+  const u=r.chopeiraIds.map(cid=>DB.chopeiras.find(x=>x.id===cid)).filter(Boolean)[0];
+  const md=document.getElementById('v-chopmod');if(md&&u)md.value=u.modelo;
+  drawVItems();
+  showToast('Reserva carregada — confira e registre');
+}
+
+// RECOLHIMENTO (acerto)
+let recState=null;
+function openRecolhimento(vid){
+  const v=DB.vendas.find(x=>x.id===vid);
+  const emc=emCampoItens(v).filter(g=>g.cat==='barril');
+  recState={vid,ret:{}};
+  emc.forEach((g,idx)=>recState.ret[idx]={lacrado:0,vazio:g.qtd,defeito:0,max:g.qtd,tam:g.tam,prodId:g.prodId});
+  const equipsEmc=equipEmCampoVenda(v);
+  const chs=v.chopeiraIds.map(id=>DB.chopeiras.find(x=>x.id===id)).filter(c=>c&&c.status==='campo'&&c.vendaId===v.id);
+  open(`<header><h3>Recolher — ${clienteNome(v.clienteId)}</h3><p>Entregue em ${br(v.dataEntrega)}. Informe o que voltou agora. Pode ser parcial: o que ficar em campo mantém a venda aberta.</p></header>
+  <div class="body">
+    <div class="field"><label>Data do recolhimento</label><input id="rc-data" type="date" value="${iso(today())}"></div>
+    ${emc.length?`<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-bottom:8px">Barris em campo — quanto voltou e em que estado</div>
+      ${emc.map((g,idx)=>`<div style="border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px">
+        <div style="font-weight:600;margin-bottom:8px">${g.qtd}× ${g.tam}L <span style="color:var(--muted);font-weight:400">${prod(g.prodId)?prod(g.prodId).estilo+' · '+prod(g.prodId).fornecedor:''}</span></div>
+        <div class="grid3">
+          <div class="field" style="margin:0"><label style="font-size:11px;color:var(--green-ok)">Vazio (consumido)</label><input id="rc-v-${idx}" type="number" min="0" max="${g.qtd}" value="${g.qtd}" onchange="setRet(${idx},'vazio',+this.value)"></div>
+          <div class="field" style="margin:0"><label style="font-size:11px">Lacrado (não usado)</label><input id="rc-l-${idx}" type="number" min="0" max="${g.qtd}" value="0" onchange="setRet(${idx},'lacrado',+this.value)"></div>
+          <div class="field" style="margin:0"><label style="font-size:11px;color:var(--rust)">Defeito / perda</label><input id="rc-d-${idx}" type="number" min="0" max="${g.qtd}" value="0" onchange="setRet(${idx},'defeito',+this.value)"></div>
+        </div>
+        <div id="rc-fica-${idx}" style="font-size:11.5px;color:var(--muted);margin-top:6px"></div>
+      </div>`).join('')}</div>`:'<div class="note">Nenhum barril em campo nesta venda.</div>'}
+    ${equipsEmc.length?`<div class="field"><label>Equipamentos em campo — recolher</label>${equipsEmc.map(g=>`<label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-bottom:5px"><input type="checkbox" id="rc-eq-${g.equipId}" checked style="width:auto"> ${g.qtd}× ${g.nome} <span style="color:var(--muted);font-size:12px">(${g.classe==='cilindro'?'cilindro':'manômetro'})</span></label>`).join('')}</div>`:''}
+    ${chs.length?`<div class="field"><label>Chopeiras — destino ao voltar</label>${chs.map(c=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0"><input type="checkbox" id="rc-chrec-${c.id}" checked style="width:auto"> <span class="chip tag">${c.etiqueta}</span> ${c.modelo}</label><select id="rc-ch-${c.id}" style="margin-left:auto;width:auto;padding:6px 10px"><option value="disponivel">Volta pronta</option><option value="manutencao">Precisa limpeza/manutenção</option></select></div>`).join('')}</div>`:''}
+    <div class="field"><label>Valor cobrado (R$) — total da venda</label><input id="rc-valor" type="number" min="0" step="0.01" value="${(v.valor!=null?v.valor:valorSugerido(v)).toFixed(2)}"><div class="note" style="margin-top:8px">Sugestão sobre o consumido (vazio) × preço. Lacrado e defeito não entram. Ajuste para descontos.</div></div>
+    ${v.pago?'<div class="note" style="border-left-color:var(--green-ok)">Esta venda já está paga.</div>':`<div class="field"><label><input type="checkbox" id="rc-pago" style="width:auto;margin-right:8px;vertical-align:middle">Recebi o pagamento agora</label></div>`}
+  </div>
+  <footer><span class="acerto" id="rc-resumo"></span><button class="btn primary" onclick="confirmRecolhimento()">Registrar recolhimento</button></footer>`);
+  recalcRec();
+}
+function setRet(idx,estado,n){const r=recState.ret[idx];r[estado]=n;
+  let soma=r.vazio+r.lacrado+r.defeito;
+  if(soma>r.max){const excesso=soma-r.max;r[estado]=Math.max(0,n-excesso);const el=document.getElementById('rc-'+estado[0]+'-'+idx);if(el)el.value=r[estado];}
+  recalcRec();}
+function recalcRec(){
+  const v=DB.vendas.find(x=>x.id===recState.vid);
+  let totalVol=0,totalLac=0,totalDef=0;
+  Object.values(recState.ret).forEach(r=>{totalVol+=r.vazio;totalLac+=r.lacrado;totalDef+=r.defeito;});
+  const emc=emCampoItens(v).filter(g=>g.cat==='barril');
+  emc.forEach((g,idx)=>{const r=recState.ret[idx];const fica=g.qtd-(r.vazio+r.lacrado+r.defeito);
+    const el=document.getElementById('rc-fica-'+idx);if(el)el.textContent=fica>0?`fica ${fica} em campo (venda continua aberta)`:'tudo recolhido';});
+  const tmp=JSON.parse(JSON.stringify(v));
+  emc.forEach((g,idx)=>{const r=recState.ret[idx];['lacrado','vazio','defeito'].forEach(es=>{if(r[es]>0)tmp.movs.push({tipo:'retorno',cat:'barril',tam:g.tam,prodId:g.prodId,qtd:r[es],data:'tmp',estado:es});});});
+  const sug=valorSugerido(tmp);
+  const vi=document.getElementById('rc-valor');if(vi&&document.activeElement!==vi&&v.valor==null)vi.value=sug.toFixed(2);
+  const rr=document.getElementById('rc-resumo');if(rr)rr.innerHTML=`voltando: <b>${totalVol}</b> vazio · <b>${totalLac}</b> lacrado${totalDef?` · <b style="color:var(--rust)">${totalDef}</b> defeito`:''}`;
+}
+async function confirmRecolhimento(){
+  const v=DB.vendas.find(x=>x.id===recState.vid);
+  const data=document.getElementById('rc-data').value;
+  const emc=emCampoItens(v).filter(g=>g.cat==='barril');
+  emc.forEach((g,idx)=>{const r=recState.ret[idx];['lacrado','vazio','defeito'].forEach(es=>{if(r[es]>0)v.movs.push({tipo:'retorno',cat:'barril',tam:g.tam,prodId:g.prodId,qtd:r[es],data,estado:es});});});
+  const equipsEmc=equipEmCampoVenda(v);
+  equipsEmc.forEach(g=>{const chk=document.getElementById('rc-eq-'+g.equipId);if(!chk||chk.checked)v.movs.push({tipo:'retorno',cat:'equip',equipId:g.equipId,qtd:g.qtd,data});});
+  v.chopeiraIds.forEach(id=>{const c=DB.chopeiras.find(x=>x.id===id);if(!c||c.status!=='campo'||c.vendaId!==v.id)return;const chk=document.getElementById('rc-chrec-'+id);if(chk&&!chk.checked)return;
+    const sel=document.getElementById('rc-ch-'+id);const dest=sel?sel.value:'disponivel';
+    c.eventos.push({tipo:'retorno',data,clienteId:c.clienteId});c.clienteId=null;c.desde=null;c.vendaId=null;
+    if(dest==='manutencao'){c.status='manutencao';c.eventos.push({tipo:'manutencao',data,nota:'limpeza/manutenção'});}else c.status='disponivel';});
+  const valEl=document.getElementById('rc-valor');if(valEl)v.valor=parseFloat(valEl.value)||0;
+  const pagchk=document.getElementById('rc-pago');if(pagchk&&pagchk.checked){v.pago=true;v.dataPagamento=data;}
+  recalcStatusVenda(v);
+  if(v.status==='fechada')v.dataRecolhimento=data;
+  await persist();close();showToast(v.status==='fechada'?'Recolhido — venda fechada':'Recolhimento parcial — venda segue aberta');render();
+}
+
+// ===== REPOR / TROCAR (movimentos no meio do evento) =====
+let repState=null;
+function openAgendarRecolhe(vid){
+  const v=DB.vendas.find(x=>x.id===vid);const c=cliente(v.clienteId)||{};
+  open(`<header><h3>Agendar recolhimento — ${c.nome||''}</h3><p>Quando você combinou de buscar o vasilhame? Aparece na Semana, no dia certo, junto das instalações.</p></header>
+  <div class="body">
+    <div class="grid2"><div class="field"><label>Dia da busca</label><input id="ar-data" type="date" value="${v.dataRecolhe||iso(today())}"></div><div class="field"><label>Hora combinada</label><input id="ar-hora" type="time" value="${v.horaRecolhe||'09:00'}"></div></div>
+    <div class="note">Isto agenda a busca — o acerto (o que voltou, vazio/lacrado) você faz no botão "Recolher" quando chegar lá. Se sobrar vasilhame, é só agendar de novo.</div>
+    ${v.dataRecolhe?`<div class="field"><label><input type="checkbox" id="ar-limpa" style="width:auto;margin-right:8px;vertical-align:middle">Remover agendamento (volta pra lista sem data)</label></div>`:''}
+  </div>
+  <footer><span></span><button class="btn gold" onclick="saveAgendarRecolhe(${vid})">Salvar agendamento</button></footer>`);
+}
+async function saveAgendarRecolhe(vid){
+  const v=DB.vendas.find(x=>x.id===vid);
+  const limpa=document.getElementById('ar-limpa');
+  if(limpa&&limpa.checked){v.dataRecolhe=null;v.horaRecolhe=null;}
+  else{v.dataRecolhe=document.getElementById('ar-data').value;v.horaRecolhe=document.getElementById('ar-hora').value;}
+  await persist();close();showToast('Recolhimento agendado');render();
+}
+function openRepor(vid){
+  const v=DB.vendas.find(x=>x.id===vid);
+  repState={vid,saidas:[{tam:50,prodId:DB.produtos[0]?DB.produtos[0].id:null,qtd:1}],retornos:{}};
+  const emc=emCampoItens(v).filter(g=>g.cat==='barril');
+  emc.forEach((g,idx)=>repState.retornos[idx]={vazio:0,tam:g.tam,prodId:g.prodId,max:g.qtd});
+  open(`<header><h3>Repor / trocar — ${clienteNome(v.clienteId)}</h3><p>No meio do evento: leve mais barril (reposição) e/ou recolha vazios sem fechar a venda.</p></header>
+  <div class="body">
+    <div class="field"><label>Data</label><input id="rp-data" type="date" value="${iso(today())}"></div>
+    <div class="field"><label>Levar mais (reposição)</label><div id="rp-saidas"></div><button class="addline" onclick="rpAddSaida()">+ Adicionar barril a levar</button></div>
+    ${emc.length?`<div class="field"><label>Recolher vazios agora (opcional)</label>${emc.map((g,idx)=>`<div style="display:grid;grid-template-columns:1fr .8fr;gap:8px;align-items:center;margin-bottom:6px"><span>${g.qtd}× ${g.tam}L ${prod(g.prodId)?prod(g.prodId).estilo:''}</span><input type="number" min="0" max="${g.qtd}" value="0" placeholder="qtd vazia" onchange="repState.retornos[${idx}].vazio=+this.value"></div>`).join('')}</div>`:''}
+  </div>
+  <footer><span></span><button class="btn gold" onclick="confirmRepor()">Registrar movimento</button></footer>`);
+  rpDrawSaidas();
+}
+function rpAddSaida(){repState.saidas.push({tam:50,prodId:DB.produtos[0]?DB.produtos[0].id:null,qtd:1});rpDrawSaidas();}
+function rpDrawSaidas(){
+  document.getElementById('rp-saidas').innerHTML=repState.saidas.map((s,i)=>`<div class="itemrow" style="margin-bottom:6px"><div class="field"><label>${i===0?'Tam':''}</label><select onchange="repState.saidas[${i}].tam=+this.value">${TAMANHOS.map(t=>`<option value="${t}" ${s.tam===t?'selected':''}>${t}L</option>`).join('')}</select></div><div class="field"><label>${i===0?'Produto':''}</label><select onchange="repState.saidas[${i}].prodId=+this.value">${produtosAtivos().map(p=>`<option value="${p.id}" ${s.prodId===p.id?'selected':''}>${p.estilo}</option>`).join('')}</select></div><div class="field"><label>${i===0?'Qtd':''}</label><input type="number" min="0" value="${s.qtd}" onchange="repState.saidas[${i}].qtd=+this.value"></div><button class="x" onclick="repState.saidas.splice(${i},1);rpDrawSaidas()" ${repState.saidas.length===1?'style="visibility:hidden"':''}>×</button></div>`).join('');
+}
+async function confirmRepor(){
+  const v=DB.vendas.find(x=>x.id===repState.vid);const data=document.getElementById('rp-data').value;
+  repState.saidas.forEach(s=>{if(s.qtd>0)v.movs.push({tipo:'saida',cat:'barril',tam:s.tam,prodId:s.prodId,qtd:s.qtd,data});});
+  Object.values(repState.retornos).forEach(r=>{if(r.vazio>0)v.movs.push({tipo:'retorno',cat:'barril',tam:r.tam,prodId:r.prodId,qtd:r.vazio,data,estado:'vazio'});});
+  recalcStatusVenda(v);
+  await persist();close();showToast('Movimento registrado no diário');render();
+}
+
+// chopeira manutenção (avulsa)
+function manutChopeira(id){const c=DB.chopeiras.find(x=>x.id===id);open(`<header><h3>Enviar ${c.etiqueta} para manutenção</h3></header><div class="body"><div class="field"><label>O que será feito</label><input id="mc-obs" placeholder="ex.: limpeza, troca de sifão"></div><div class="field"><label>Data</label><input id="mc-data" type="date" value="${iso(today())}"></div></div><footer><span></span><button class="btn primary" onclick="confirmManut(${id})">Enviar</button></footer>`);}
+async function confirmManut(id){const c=DB.chopeiras.find(x=>x.id===id);c.status='manutencao';c.eventos.push({tipo:'manutencao',data:document.getElementById('mc-data').value,nota:document.getElementById('mc-obs').value.trim()||'manutenção'});await persist();close();showToast('Enviada para manutenção');render();}
+async function liberarChopeira(id){const c=DB.chopeiras.find(x=>x.id===id);c.status='disponivel';c.eventos.push({tipo:'limpeza',data:iso(today()),nota:'liberada'});await persist();showToast(c.etiqueta+' pronta');render();}
+
+function openChopeira(){open(`<header><h3>Cadastrar chopeira</h3><p>Cada chopeira ganha etiqueta e ficha técnica próprias.</p></header><div class="body"><div class="grid2"><div class="field"><label>Etiqueta / nº</label><input id="nc-et" placeholder="ex.: CH-007"></div><div class="field"><label>Modelo</label><input id="nc-mod" placeholder="Upper, Slim…"></div></div><div class="grid3"><div class="field"><label>Torneiras</label><input id="nc-tor" type="number" min="1" value="1"></div><div class="field"><label>Resfriamento (L/h)</label><input id="nc-res" type="number" min="0" placeholder="120"></div><div class="field"><label>Potência (W)</label><input id="nc-pot" type="number" min="0" placeholder="240"></div></div><div class="note">O resfriamento (litros gelados por hora) ajuda a escolher a chopeira certa para o porte do evento.</div></div><footer><span></span><button class="btn gold" onclick="saveChopeira()">Cadastrar</button></footer>`);}
+async function saveChopeira(){const et=document.getElementById('nc-et').value.trim(),mod=document.getElementById('nc-mod').value.trim();if(!et||!mod){showToast('Informe etiqueta e modelo');return;}DB.chopeiras.push({id:_cid++,etiqueta:et,modelo:mod,torneiras:+document.getElementById('nc-tor').value||1,resfriamento:+document.getElementById('nc-res').value||0,potencia:+document.getElementById('nc-pot').value||0,status:'disponivel',clienteId:null,desde:null,vendaId:null,eventos:[{tipo:'cadastro',data:iso(today())}]});await persist();close();showToast('Chopeira cadastrada');render();}
+function openCliente(){open(`<header><h3>Novo cliente</h3></header><div class="body"><div class="grid2"><div class="field"><label>Nome</label><input id="c-nome" placeholder="Nome do cliente"></div><div class="field"><label>Telefone</label><input id="c-tel" placeholder="(35) 9...."></div></div><div class="field"><label>Documento <span style="color:var(--muted);font-weight:400">(CPF, CNPJ ou outro)</span></label><input id="c-doc" placeholder="opcional"></div><div class="field"><label>Endereço</label><input id="c-end" placeholder="Rua, número"></div><div class="grid2"><div class="field"><label>Cidade</label><input id="c-cidade" placeholder="Cidade"></div><div class="field"><label>Ponto de referência</label><input id="c-ref" placeholder="ex.: em frente à praça"></div></div></div><footer><span></span><button class="btn primary" onclick="saveCliente()">Salvar</button></footer>`);}
+async function saveCliente(){const n=document.getElementById('c-nome').value.trim();if(!n){showToast('Informe o nome');return;}DB.clientes.push({id:Math.max(0,...DB.clientes.map(c=>c.id))+1,nome:n,cidade:document.getElementById('c-cidade').value.trim(),tel:document.getElementById('c-tel').value.trim(),documento:document.getElementById('c-doc').value.trim(),endereco:document.getElementById('c-end').value.trim(),ref:document.getElementById('c-ref').value.trim()});await persist();close();showToast('Cliente adicionado');render();}
+function openProduto(id){
+  const p=id?DB.produtos.find(x=>x.id===id):null;
+  open(`<header><h3>${p?'Editar produto':'Novo produto'}</h3><p>Estilo + fornecedor, custo e preço por litro.${p?' Alterações valem para vendas novas.':''}</p></header><div class="body"><div class="grid2"><div class="field"><label>Estilo</label><input id="p-est" placeholder="Lager, IPA…" value="${p?p.estilo:''}"></div><div class="field"><label>Fornecedor</label><input id="p-forn" placeholder="Antártica, Skol…" value="${p?p.fornecedor:''}"></div></div><div class="grid2"><div class="field"><label>Custo/L (R$)</label><input id="p-custo" type="number" step="0.01" min="0" value="${p?p.custoLitro:''}"></div><div class="field"><label>Preço/L (R$)</label><input id="p-preco" type="number" step="0.01" min="0" value="${p?p.precoLitro:''}"></div></div></div><footer><span></span><button class="btn primary" onclick="saveProduto(${id||0})">Salvar</button></footer>`);
+}
+async function saveProduto(id){
+  const e=document.getElementById('p-est').value.trim(),f=document.getElementById('p-forn').value.trim();
+  if(!e||!f){showToast('Informe estilo e fornecedor');return;}
+  const custo=parseFloat(document.getElementById('p-custo').value)||0,preco=parseFloat(document.getElementById('p-preco').value)||0;
+  if(id){const p=DB.produtos.find(x=>x.id===id);p.estilo=e;p.fornecedor=f;p.custoLitro=custo;p.precoLitro=preco;showToast('Produto atualizado');}
+  else{DB.produtos.push({id:Math.max(0,...DB.produtos.map(p=>p.id))+1,estilo:e,fornecedor:f,custoLitro:custo,precoLitro:preco});showToast('Produto adicionado');}
+  await persist();close();render();
+}
+async function excluirProduto(id){
+  const p=DB.produtos.find(x=>x.id===id);if(!p)return;
+  const nv=DB.vendas.filter(v=>diario(v).some(m=>m.prodId===id)).length;
+  if(nv>0){
+    open(`<header><h3>Excluir ${p.estilo} · ${p.fornecedor}?</h3></header>
+    <div class="body"><div class="note" style="border-left-color:var(--rust);color:#8A3415">Este produto está em <b>${nv} venda(s)</b>. Excluir vai deixar essas vendas <b>sem produto</b> — o cálculo de custo, preço e litros delas fica comprometido, e o financeiro desses períodos pode não bater.</div>
+    <div style="font-size:13px;color:var(--muted)">Se a ideia é só tirar das opções de novas vendas mantendo o histórico, prefira <b>Arquivar</b>. Excluir é definitivo.</div></div>
+    <footer><button class="btn ghost" onclick="close()">Cancelar</button><button class="btn" style="background:var(--rust);color:#fff" onclick="confirmExcluirProduto(${id})">Excluir mesmo assim</button></footer>`);
+    return;
+  }
+  DB.produtos=DB.produtos.filter(p=>p.id!==id);await persist();showToast('Produto excluído');render();
+}
+async function confirmExcluirProduto(id){DB.produtos=DB.produtos.filter(p=>p.id!==id);await persist();close();showToast('Produto excluído');render();}
+async function arquivarProduto(id){const p=DB.produtos.find(x=>x.id===id);p.arquivado=true;await persist();showToast('Produto arquivado');render();}
+async function desarquivarProduto(id){const p=DB.produtos.find(x=>x.id===id);p.arquivado=false;await persist();showToast('Produto reativado');render();}
+
+(async()=>{await seedIfEmpty();render();})();
+</script>
