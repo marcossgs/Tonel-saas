@@ -132,7 +132,25 @@
   .pq .br i{width:8px;height:8px;border-radius:50%;font-style:normal}
   @media(max-width:860px){.app{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;gap:6px}.side .foot,.brand span,.nav .sep{display:none}.nav{flex-direction:row;flex-wrap:wrap}.main{padding:20px}.stats{grid-template-columns:1fr 1fr}.itemrow{grid-template-columns:1fr 1fr}}
 </style>
+<script>
+  function calcular() {
+    let total = document.getElementById('total').value;
+    let vendidos = document.getElementById('vendidos').value;
+    let resultado = total - vendidos;
+    document.getElementById('display').innerText = "Estoque atual: " + resultado;
+  }
+</script>
 
+<div style="padding: 20px; background: #f9f9f9; border-radius: 10px; margin: 10px;">
+  <input type="number" id="total" placeholder="Total de barris">
+  <input type="number" id="vendidos" placeholder="Barris vendidos">
+  <button onclick="calcular()">Calcular</button>
+  <p id="display"></p>
+</div>
+  
+  <script>
+  console.log("O sistema Tonel está pronto para rodar!");
+</script>
 <div class="app">
   <aside class="side">
     <div class="brand"><span class="logo"></span><div><b>Tonel</b><br><span>controle de chope</span></div></div>
